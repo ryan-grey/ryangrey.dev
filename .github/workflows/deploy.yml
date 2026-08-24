@@ -45,9 +45,9 @@ jobs:
           payload = tok.split(".")[1]
           payload += "=" * (-len(payload) % 4)
           claims = json.loads(base64.urlsafe_b64decode(payload))
-          print("--- claims AWS will evaluate ---")
-          for k in ("iss", "aud", "sub", "repository", "ref", "environment", "workflow_ref"):
-              print(f"  {k}: {claims.get(k)}")
+          print("--- ALL claims in the token ---")
+          for k in sorted(claims):
+              print(f"  {k}: {claims[k]}")
           PY
 
       - name: Assume AWS role via OIDC
