@@ -49,7 +49,7 @@ jobs:
             --delete \
             --exclude ".git/*" \
             --exclude ".github/*" \
-            --exclude "scripts/*" \
+            --exclude "infra/*" \
             --exclude ".gitignore" \
             --exclude "README.md" \
             --exclude ".DS_Store" \

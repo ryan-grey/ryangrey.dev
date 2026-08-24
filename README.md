@@ -111,7 +111,7 @@ The job proves its identity with a short-lived signed token describing *which re
 "Condition": {
   "StringEquals": {
     "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-    "token.actions.githubusercontent.com:sub": "repo:ryan-grey/ryangrey.dev:ref:refs/heads/main"
+    "token.actions.githubusercontent.com:sub": "repo:ryan-grey@146499233/ryangrey.dev@1345403610:ref:refs/heads/main"
   }
 }
 ```
@@ -128,7 +128,7 @@ The role's permissions are scoped to match: write objects to one bucket, create 
 repo:ryan-grey@146499233/ryangrey.dev@1345403610:ref:refs/heads/main
 ```
 
-The numeric owner and repository IDs are appended. This is a hardening measure: names are recyclable — delete a repository and the name becomes available to anyone — so binding trust to immutable IDs means the grant follows the actual repository rather than a string someone else could later register. A trust policy written from the documented format fails with `Not authorized to perform sts:AssumeRoleWithWebIdentity`, which names the action rather than the claim that didn't match, so it reads like a missing permission instead of a string mismatch. `scripts/setup-oidc.sh` resolves both IDs from the GitHub API rather than assuming a format.
+The numeric owner and repository IDs are appended. This is a hardening measure: names are recyclable — delete a repository and the name becomes available to anyone — so binding trust to immutable IDs means the grant follows the actual repository rather than a string someone else could later register. A trust policy written from the documented format fails with `Not authorized to perform sts:AssumeRoleWithWebIdentity`, which names the action rather than the claim that didn't match, so it reads like a missing permission instead of a string mismatch. `infra/setup-oidc.sh` resolves both IDs from the GitHub API rather than assuming a format.
 
 The reliable way to find out what your own tokens carry is to ask the runner: request the token, base64-decode the JWT payload, and print the claims. Guessing costs a round trip per attempt.
 
@@ -150,7 +150,7 @@ This workflow therefore has no `environment:` block, and the trust policy stays 
 One-time, with IAM admin credentials:
 
 ```bash
-DISTRIBUTION_ID=<your-distribution-id> ./scripts/setup-oidc.sh
+DISTRIBUTION_ID=<your-distribution-id> ./infra/setup-oidc.sh
 ```
 
 The script is idempotent and creates the OIDC provider, the role, and its policy. It derives the account ID at runtime, so no account identifiers are committed here. It prints the role ARN, which goes into the repo's secrets along with the distribution ID.
@@ -160,11 +160,61 @@ The script is idempotent and creates the OIDC provider, the role, and its policy
 `.github/workflows/deploy.yml` runs on every push to `main`:
 
 1. Assume the role via OIDC
-2. `aws s3 sync --delete` the site files (excluding `README.md`, `scripts/`, `.github/`, and tooling config)
+2. `aws s3 sync --delete` the site files (excluding `README.md`, `infra/`, `.github/`, and tooling config)
 3. Create a CloudFront invalidation and **wait** for it to complete
 4. Fetch the live page and assert it byte-matches the committed `index.html`
 
 Step 4 matters: it means a green check reflects verified-live content, not just a successful upload. A `concurrency` group prevents two deploys racing onto the same bucket.
+
+## Security headers
+
+Every response carries a full set of security headers, added by a CloudFront **viewer-response function**:
+
+| Header | Value |
+| --- | --- |
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` |
+| `Content-Security-Policy` | `default-src 'none'; script-src 'none'; …` (below) |
+| `X-Frame-Options` | `DENY` |
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | camera, geolocation, microphone, payment, USB… all denied |
+
+### Why a function instead of a response headers policy
+
+The obvious mechanism is a CloudFront **response headers policy**, and that is what this started as. It fails:
+
+```
+InvalidArgument: Distributions with the Free pricing plan can't have the
+following features: Custom response headers policy
+```
+
+Worth reading carefully — that is `InvalidArgument`, not `AccessDenied`. The IAM user had every permission required and created the policy without complaint; the *pricing plan* refused the attachment. A viewer-response function is permitted on the Free plan and sets the same headers, so the workaround costs nothing and needs no plan upgrade.
+
+### The CSP
+
+```
+default-src 'none'; script-src 'none'; style-src 'unsafe-inline';
+img-src 'self' data:; font-src 'none'; connect-src 'none';
+object-src 'none'; base-uri 'none'; form-action 'none';
+frame-ancestors 'none'; upgrade-insecure-requests
+```
+
+`script-src 'none'` is the one that matters, and it is only available because the site genuinely has **zero `<script>` tags**. That single directive removes the whole XSS class rather than mitigating it — a property of the no-JavaScript constraint, not of the header.
+
+Two judgement calls are worth stating outright:
+
+- **`img-src` must include `data:`.** The favicon is an inline `data:image/svg+xml` URI. Omit `data:` and the tab icon silently disappears while every other check still passes.
+- **`style-src 'unsafe-inline'` is a deliberate compromise.** The CSS is one inline `<style>` block; the strict alternative is a `sha256-` hash of its exact contents, which goes stale on *every* CSS edit and fails silently to an unstyled page. With no JavaScript on the page, there is nothing to weaponise CSS injection against, so the hash buys very little for real operational risk.
+
+`X-XSS-Protection` is deliberately **not** set — it is deprecated, and with a real CSP present it can introduce vulnerabilities rather than prevent them.
+
+### Deploying header changes
+
+```bash
+DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-security-headers.sh
+```
+
+Idempotent. It updates the function, runs `test-function` against a sample event and prints the resulting headers **before** publishing, then associates it with the distribution if it isn't already. The pre-publish test matters: a broken CSP fails silently — the headers still look perfect in `curl` while images vanish and the page renders unstyled. Verify in a browser, not just with `curl -I`.
 
 ## Contents
 
@@ -174,5 +224,7 @@ ryan-grey.jpg                       profile photo (EXIF stripped)
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
 ryan-grey-cv.pdf                    CV linked from the page
 .github/workflows/deploy.yml        keyless CI/CD pipeline
-scripts/setup-oidc.sh               one-time IAM OIDC provider + role setup
+infra/setup-oidc.sh                 one-time IAM OIDC provider + role setup
+infra/cloudfront-security-headers.js   viewer-response function: security headers
+infra/deploy-security-headers.sh    deploys/updates that function
 ```
