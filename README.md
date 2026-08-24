@@ -120,9 +120,19 @@ The job proves its identity with a short-lived signed token describing *which re
 
 The role's permissions are scoped to match: write objects to one bucket, create an invalidation on one distribution. Nothing else.
 
-### One subtlety worth knowing
+### Two subtleties worth knowing
 
-The `sub` claim is not always what you expect. A job that references a GitHub **environment** gets a different subject entirely:
+**The subject claim carries database IDs.** Every tutorial shows the subject as `repo:OWNER/REPO:ref:refs/heads/main`. The token this repo actually receives says:
+
+```
+repo:ryan-grey@146499233/ryangrey.dev@1345403610:ref:refs/heads/main
+```
+
+The numeric owner and repository IDs are appended. This is a hardening measure: names are recyclable — delete a repository and the name becomes available to anyone — so binding trust to immutable IDs means the grant follows the actual repository rather than a string someone else could later register. A trust policy written from the documented format fails with `Not authorized to perform sts:AssumeRoleWithWebIdentity`, which names the action rather than the claim that didn't match, so it reads like a missing permission instead of a string mismatch. `scripts/setup-oidc.sh` resolves both IDs from the GitHub API rather than assuming a format.
+
+The reliable way to find out what your own tokens carry is to ask the runner: request the token, base64-decode the JWT payload, and print the claims. Guessing costs a round trip per attempt.
+
+**An `environment:` block changes the subject too.**
 
 | Job configuration | `sub` claim in the issued token |
 | --- | --- |

@@ -29,10 +29,23 @@ ISSUER="token.actions.githubusercontent.com"
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 PROVIDER_ARN="arn:aws:iam::${ACCOUNT_ID}:oidc-provider/${ISSUER}"
 
+# GitHub issues an *immutable* subject claim: owner and repo names carry their
+# numeric database IDs, e.g.
+#   repo:owner@146499233/repo@1345403610:ref:refs/heads/main
+# rather than the documented plain form. The IDs make the subject survive a
+# rename, and stop anyone who deletes and re-registers the name from
+# inheriting its trust. They must be resolved, not assumed.
+OWNER_ID="$(curl -fsSL "https://api.github.com/users/${GITHUB_ORG}" \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')"
+REPO_ID="$(curl -fsSL "https://api.github.com/repos/${GITHUB_ORG}/${GITHUB_REPO}" \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')"
+SUBJECT="repo:${GITHUB_ORG}@${OWNER_ID}/${GITHUB_REPO}@${REPO_ID}:ref:refs/heads/${BRANCH}"
+
 echo "Account:      ${ACCOUNT_ID}"
 echo "Repo:         ${GITHUB_ORG}/${GITHUB_REPO}"
 echo "Branch:       ${BRANCH}"
 echo "Role:         ${ROLE_NAME}"
+echo "Subject:      ${SUBJECT}"
 echo
 
 # ---------------------------------------------------------------------------
@@ -70,7 +83,7 @@ TRUST=$(cat <<JSON
       "Condition": {
         "StringEquals": {
           "${ISSUER}:aud": "sts.amazonaws.com",
-          "${ISSUER}:sub": "repo:${GITHUB_ORG}/${GITHUB_REPO}:ref:refs/heads/${BRANCH}"
+          "${ISSUER}:sub": "${SUBJECT}"
         }
       }
     }
