@@ -81,6 +81,66 @@ Notes:
 
 The AWS Certified Cloud Practitioner badge on the site links to [its Credly verification page](https://www.credly.com/badges/805d358d-416b-4def-8691-c0c92fa5f1d6/public_url). Credly's official embed is a `<script>` from their CDN, which would have broken the no-external-requests rule — so the badge art is self-hosted and simply hyperlinked to the verification URL. Same result, independently verifiable, zero third-party calls.
 
+## CI/CD: keyless deploys
+
+Pushing to `main` deploys the site. There are **no AWS access keys stored anywhere** — not in GitHub secrets, not in the repo, not on a laptop.
+
+Instead, GitHub Actions and AWS establish trust directly via **OpenID Connect**:
+
+```mermaid
+sequenceDiagram
+    participant GA as GitHub Actions
+    participant GH as GitHub OIDC issuer
+    participant STS as AWS STS
+    participant AWS as S3 + CloudFront
+
+    GA->>GH: request token for this run
+    GH-->>GA: signed JWT (repo, branch, sha)
+    GA->>STS: AssumeRoleWithWebIdentity(JWT)
+    STS->>GH: fetch public keys, verify signature
+    STS->>STS: check claims against role trust policy
+    STS-->>GA: temporary credentials (expire with the job)
+    GA->>AWS: sync + invalidate
+```
+
+The job proves its identity with a short-lived signed token describing *which repo, which branch, which commit* is running. AWS verifies that signature against GitHub's published keys, checks the claims against the role's trust policy, and hands back credentials that expire when the job does. Nothing long-lived exists to leak, and there is no key to rotate.
+
+### The trust policy is the whole security boundary
+
+```json
+"Condition": {
+  "StringEquals": {
+    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+    "token.actions.githubusercontent.com:sub": "repo:ryan-grey/ryangrey.dev:ref:refs/heads/main"
+  }
+}
+```
+
+`StringEquals` on `sub` pins role assumption to exactly one repository and one branch. This is the part worth getting right: the OIDC provider trusts *GitHub*, not *you* — so a trust policy that omits the `sub` condition, or uses `StringLike` with a wildcard, is assumable by **any repository on GitHub**, including one an attacker creates. The condition is what turns "GitHub can assume this role" into "this repo on this branch can assume this role."
+
+The role's permissions are scoped to match: write objects to one bucket, create an invalidation on one distribution. Nothing else.
+
+### Setup
+
+One-time, with IAM admin credentials:
+
+```bash
+DISTRIBUTION_ID=<your-distribution-id> ./scripts/setup-oidc.sh
+```
+
+The script is idempotent and creates the OIDC provider, the role, and its policy. It derives the account ID at runtime, so no account identifiers are committed here. It prints the role ARN, which goes into the repo's secrets along with the distribution ID.
+
+### The workflow
+
+`.github/workflows/deploy.yml` runs on every push to `main`:
+
+1. Assume the role via OIDC
+2. `aws s3 sync --delete` the site files (excluding `README.md`, `scripts/`, `.github/`, and tooling config)
+3. Create a CloudFront invalidation and **wait** for it to complete
+4. Fetch the live page and assert it byte-matches the committed `index.html`
+
+Step 4 matters: it means a green check reflects verified-live content, not just a successful upload. A `concurrency` group prevents two deploys racing onto the same bucket.
+
 ## Contents
 
 ```
@@ -88,4 +148,6 @@ index.html                          the entire site — markup, CSS, and SVG dia
 ryan-grey.jpg                       profile photo (EXIF stripped)
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
 ryan-grey-cv.pdf                    CV linked from the page
+.github/workflows/deploy.yml        keyless CI/CD pipeline
+scripts/setup-oidc.sh               one-time IAM OIDC provider + role setup
 ```
