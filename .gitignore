@@ -1,0 +1,8 @@
+.DS_Store
+
+# Local agent config — not part of the site
+.claude/
+
+# Project notes: contains AWS account ID, distribution ID, cert ARN,
+# hosted zone ID and IAM user. Deliberately not published.
+CLAUDE.md
