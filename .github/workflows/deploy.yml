@@ -1,0 +1,74 @@
+name: Deploy to S3 + CloudFront
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two deploys race each other onto the same bucket.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write   # required: lets the job mint the OIDC token AWS validates
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://ryangrey.dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # No access keys anywhere. The job presents a short-lived OIDC token;
+      # AWS validates it against the trust policy and returns temporary
+      # credentials scoped to this role. They expire when the job ends.
+      - name: Assume AWS role via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: gha-${{ github.run_id }}-${{ github.run_attempt }}
+          aws-region: us-east-1
+
+      - name: Confirm assumed identity
+        run: aws sts get-caller-identity
+
+      - name: Sync site to S3
+        run: |
+          aws s3 sync . s3://ryangrey.dev \
+            --delete \
+            --exclude ".git/*" \
+            --exclude ".github/*" \
+            --exclude "scripts/*" \
+            --exclude ".gitignore" \
+            --exclude "README.md" \
+            --exclude ".DS_Store" \
+            --exclude "CLAUDE.md" \
+            --exclude ".claude/*"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          ID=$(aws cloudfront create-invalidation \
+                 --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+                 --paths "/*" \
+                 --query 'Invalidation.Id' --output text)
+          echo "Invalidation: $ID"
+          aws cloudfront wait invalidation-completed \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --id "$ID"
+          echo "Invalidation complete."
+
+      - name: Verify live site
+        run: |
+          CODE=$(curl -s -o /tmp/live.html -w '%{http_code}' https://ryangrey.dev/)
+          echo "HTTP $CODE"
+          test "$CODE" = "200"
+          diff -q /tmp/live.html index.html \
+            && echo "Live site matches committed index.html" \
+            || { echo "Live site does not match repo"; exit 1; }
