@@ -1,0 +1,10 @@
+.DS_Store
+
+# Private local configuration — not part of the site
+/.*/
+!/.github/
+
+# Project notes: contains AWS account ID, distribution ID, cert ARN,
+# hosted zone ID and IAM user. Deliberately not published.
+/*.md
+!/README.md
