@@ -33,23 +33,6 @@ jobs:
       # No access keys anywhere. The job presents a short-lived OIDC token;
       # AWS validates it against the trust policy and returns temporary
       # credentials scoped to this role. They expire when the job ends.
-      # TEMPORARY DIAGNOSTIC: print the OIDC token's claims (never the token
-      # itself) so we can compare them against the role's trust policy.
-      - name: Inspect OIDC token claims
-        run: |
-          RESP=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
-          python3 - "$RESP" <<'PY'
-          import sys, json, base64
-          tok = json.loads(sys.argv[1])["value"]
-          payload = tok.split(".")[1]
-          payload += "=" * (-len(payload) % 4)
-          claims = json.loads(base64.urlsafe_b64decode(payload))
-          print("--- ALL claims in the token ---")
-          for k in sorted(claims):
-              print(f"  {k}: {claims[k]}")
-          PY
-
       - name: Assume AWS role via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
