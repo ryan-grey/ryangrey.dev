@@ -120,6 +120,21 @@ The job proves its identity with a short-lived signed token describing *which re
 
 The role's permissions are scoped to match: write objects to one bucket, create an invalidation on one distribution. Nothing else.
 
+### One subtlety worth knowing
+
+The `sub` claim is not always what you expect. A job that references a GitHub **environment** gets a different subject entirely:
+
+| Job configuration | `sub` claim in the issued token |
+| --- | --- |
+| plain push to `main` | `repo:OWNER/REPO:ref:refs/heads/main` |
+| job with `environment: production` | `repo:OWNER/REPO:environment:production` |
+| pull request | `repo:OWNER/REPO:pull_request` |
+| tag push | `repo:OWNER/REPO:ref:refs/tags/v1.0.0` |
+
+Adding an `environment:` block to the job — even purely for the deployment URL annotation — silently changes the claim and the role assumption starts failing with `Not authorized to perform sts:AssumeRoleWithWebIdentity`. The error names the action, not the claim that failed to match, which makes it easy to misread as a missing permission rather than a condition mismatch.
+
+This workflow therefore has no `environment:` block, and the trust policy stays pinned to a single exact subject rather than being widened to accommodate one.
+
 ### Setup
 
 One-time, with IAM admin credentials:
