@@ -107,8 +107,13 @@ else
   echo "[*] Waiting for role propagation"
   sleep 15
 fi
+# NOTE: the policy must cover BOTH identities. In the SES sandbox the recipient
+# is itself a verified SES identity, and SendEmail is authorised against the
+# receiving identity as well as the sending one. Scoping this to the domain
+# alone fails with:
+#   AccessDeniedException ... on resource .../identity/<recipient>
 aws iam put-role-policy --role-name "$ROLE_NAME" --policy-name send-alert-mail \
-  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ses:SendEmail\"],\"Resource\":[\"arn:aws:ses:${REGION}:${ACCT}:identity/${DOMAIN}\"]}]}"
+  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ses:SendEmail\"],\"Resource\":[\"arn:aws:ses:${REGION}:${ACCT}:identity/${DOMAIN}\",\"arn:aws:ses:${REGION}:${ACCT}:identity/${RECIPIENT}\"]}]}"
 ROLE_ARN="$(aws iam get-role --role-name "$ROLE_NAME" --query Role.Arn --output text)"
 
 # ---------------------------------------------------------------------------
