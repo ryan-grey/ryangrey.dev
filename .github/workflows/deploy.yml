@@ -18,9 +18,13 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://ryangrey.dev
+
+    # NOTE: deliberately no `environment:` block here. Referencing a GitHub
+    # environment changes the OIDC token's `sub` claim from
+    #   repo:OWNER/REPO:ref:refs/heads/main
+    # to
+    #   repo:OWNER/REPO:environment:NAME
+    # which would no longer match the role's trust policy condition.
 
     steps:
       - name: Checkout
