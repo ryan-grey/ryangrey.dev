@@ -216,6 +216,51 @@ DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-security-headers.sh
 
 Idempotent. It updates the function, runs `test-function` against a sample event and prints the resulting headers **before** publishing, then associates it with the distribution if it isn't already. The pre-publish test matters: a broken CSP fails silently — the headers still look perfect in `curl` while images vanish and the page renders unstyled. Verify in a browser, not just with `curl -I`.
 
+## Alert delivery: SNS → Lambda → SES
+
+CloudWatch alarms publish to SNS, but SNS's built-in email uses shared sending infrastructure — and mail from it was **never delivered** to the target Gmail address. Four subscribe attempts across CLI and console, zero arrivals, while other AWS senders (`costalerts@`, `no-reply@amazonaws.com`) reached the same inbox fine. A different provider received it on the first try, which isolated the problem to that sender/recipient pair.
+
+SNS offers no delivery diagnostics for the `email` protocol — unlike SMS and HTTP/S, there are no delivery status logs to enable — so there was nothing to debug. The fix is to stop using it:
+
+```mermaid
+flowchart LR
+    CW["CloudWatch<br/><small>alarm</small>"] --> SNS["SNS topic"]
+    SNS --> L["Lambda<br/><small>formats payload</small>"]
+    L --> SES["SES<br/><small>alerts@ryangrey.dev</small>"]
+    SES --> IN["Inbox"]
+```
+
+Mail now originates from a domain identity we control, **DKIM-signed**, so it authenticates properly instead of arriving from shared infrastructure with no relationship to the sender.
+
+### Domain authentication
+
+`infra/setup-ses-alerts.sh` provisions the SES identity and writes five records into Route 53:
+
+| Record | Purpose |
+| --- | --- |
+| 3 × `<token>._domainkey` CNAME | Easy DKIM — SES publishes the public keys, signs outbound mail with the private half |
+| `TXT` at apex | SPF: `v=spf1 include:amazonses.com ~all` |
+| `TXT` at `_dmarc` | DMARC: `v=DMARC1; p=none;` |
+
+DKIM is what does the real work. SPF authorises the *envelope* sender, which for SES is an `amazonses.com` domain and therefore not aligned with `ryangrey.dev` — DKIM signs as `d=ryangrey.dev`, so DMARC passes on DKIM alignment. Publishing SPF anyway costs nothing and helps receivers that weight it.
+
+### The SES sandbox
+
+New accounts are sandboxed: SES will only send to **verified** addresses. So the recipient has to be verified too, which the script does — that triggers a verification email that must be clicked once. Production access (arbitrary recipients) requires a support request, unnecessary for alerting a fixed address.
+
+### Least privilege
+
+The Lambda's role can call `ses:SendEmail` on exactly one identity ARN, plus CloudWatch Logs. It cannot send as any other identity, and it holds no other permissions.
+
+### Deploy
+
+```bash
+curl -fsSL -o setup-ses-alerts.sh https://raw.githubusercontent.com/ryan-grey/ryangrey.dev/main/infra/setup-ses-alerts.sh
+bash setup-ses-alerts.sh
+```
+
+Idempotent. Creates the SES identity, DNS records, IAM role, Lambda, and SNS subscription; re-running updates the function in place.
+
 ## Contents
 
 ```
@@ -227,4 +272,6 @@ ryan-grey-cv.pdf                    CV linked from the page
 infra/setup-oidc.sh                 one-time IAM OIDC provider + role setup
 infra/cloudfront-security-headers.js   viewer-response function: security headers
 infra/deploy-security-headers.sh    deploys/updates that function
+infra/ses_alert_lambda.py           SNS -> SES alert forwarder (Lambda)
+infra/setup-ses-alerts.sh           provisions SES identity, DKIM, Lambda, subscription
 ```
