@@ -41,6 +41,10 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .kicker { font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+  /* The domain is the brand and is always set lowercase. `lowercase` rather
+     than `none` so it renders correctly even if the markup is ever typed
+     with capitals -- the kicker style would otherwise uppercase it. */
+  .brand { text-transform: lowercase; }
   h1 { font-size: 34px; line-height: 1.15; margin: 6px 0 10px; letter-spacing: -0.5px; }
   .lede { color: var(--muted); margin-bottom: 26px; }
 
@@ -81,7 +85,7 @@
 </head>
 <body>
 <main>
-  <div class="kicker">ryangrey.dev</div>
+  <div class="kicker brand">ryangrey.dev</div>
   <h1>Ask about Ryan</h1>
   <p class="lede">Questions about Ryan Grey's experience, projects, and skills. Answers come only from this site and his CV — if it isn't in there, the assistant will say so rather than guess.</p>
 
