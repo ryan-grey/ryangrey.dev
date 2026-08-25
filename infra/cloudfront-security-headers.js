@@ -25,13 +25,15 @@
 //   X-XSS-Protection is deliberately NOT set: it is deprecated and can
 //   introduce vulnerabilities when a real CSP is present.
 
+var CSP_STRICT = "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests";
+
 function handler(event) {
     var h = event.response.headers;
     h['strict-transport-security'] = { value: 'max-age=63072000; includeSubDomains; preload' };
     h['x-content-type-options']    = { value: 'nosniff' };
     h['x-frame-options']           = { value: 'DENY' };
     h['referrer-policy']           = { value: 'strict-origin-when-cross-origin' };
-    h['content-security-policy']   = { value: "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests" };
+    h['content-security-policy'] = { value: CSP_STRICT };
     h['permissions-policy']        = { value: 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()' };
     return event.response;
 }
