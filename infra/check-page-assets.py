@@ -32,6 +32,7 @@ from urllib.parse import urljoin
 PAGES = ["/", "/ask", "/ask/"]
 
 ASSET = re.compile(r'<(?:script|link|img)\b[^>]*?\b(?:src|href)\s*=\s*"([^"]+)"', re.I)
+OG_IMAGE = re.compile(r'<meta\b[^>]*?property="og:image"[^>]*?content="([^"]+)"', re.I)
 SKIP = ("data:", "mailto:", "#", "http://", "https://")
 
 
@@ -70,6 +71,22 @@ def main():
                 print(f"    {ref:<24} -> {target}  HTTP {e.code}")
                 failures.append(f"{page_url} references {ref!r}, which resolves "
                                 f"to {target} and returns HTTP {e.code}")
+
+        # og:image is fetched by scrapers, not by the page, so no amount of
+        # browsing the site reveals a broken one -- the card just renders
+        # without a picture, days later, in someone else's feed. It must also
+        # be ABSOLUTE: LinkedIn ignores a relative og:image outright.
+        for ref in OG_IMAGE.findall(html):
+            if not ref.startswith("https://"):
+                failures.append(f"{page_url} has a non-absolute og:image "
+                                f"({ref!r}); scrapers require a full https URL")
+                continue
+            try:
+                code, _ = get(ref)
+                print(f"    {'og:image':<24} -> {ref}  {code}")
+            except urllib.error.HTTPError as e:
+                print(f"    {'og:image':<24} -> {ref}  HTTP {e.code}")
+                failures.append(f"{page_url} og:image {ref} returns HTTP {e.code}")
 
     print()
     if failures:
