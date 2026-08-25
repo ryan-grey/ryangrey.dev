@@ -176,8 +176,8 @@
       <div class="meta">Static site served entirely from AWS — the site is its own case study.</div>
       <p>Registered domain transferred from GoDaddy to Route 53 (including tearing down a stale DNSSEC chain — DS records deleted at the .dev registry before the nameserver cutover, so resolution never broke). Hosted from S3, fronted by CloudFront with a free ACM certificate. The .dev TLD is HSTS-preloaded, so every connection is HTTPS by force.</p>
       <ul class="caps">
-        <li><b>Keyless CI/CD</b> — OIDC-federated deploys, no stored credentials; every deploy verified byte-for-byte against the commit</li>
-        <li><b>Security headers at the edge</b> — CSP <b style="font-weight:600">script-src 'none'</b>; zero JavaScript</li>
+        <li><b>Keyless CI/CD</b> — OIDC-federated deploys, no stored credentials; every deploy verified byte-for-byte against the commit, behind three drift guards that run before any credential is assumed</li>
+        <li><b>Security headers at the edge</b> — a path-branched CSP: <b style="font-weight:600">script-src 'none'</b> on this page, which carries no JavaScript at all, and a separate narrow policy for the chatbot route</li>
         <li><b>Self-testing monitoring</b> — alarm &rarr; SNS &rarr; Lambda &rarr; SES, with a monthly heartbeat that shares no failure modes with the path it tests</li>
       </ul>
       <p class="more"><a href="https://github.com/ryan-grey/ryangrey.dev">Full write-ups and infrastructure code on GitHub &rarr;</a></p>
@@ -243,19 +243,19 @@
   <section id="experience">
     <h2>Experience</h2>
     <div class="job">
-      <div class="jobhead"><span><b>Owner — E-Commerce Operations</b> <span class="org">— self-employed</span></span><span class="dates">2019 – present</span></div>
-      <p>Multi-marketplace resale business; built the AI-assisted operations pipeline above. Computer science coursework and full-stack bootcamp training completed concurrently.</p>
+      <div class="jobhead"><span><b>Owner — E-Commerce Operations</b> <span class="org">— self-employed · eBay &amp; Facebook Marketplace</span></span><span class="dates">2019 – present</span></div>
+      <p>Resale business across eBay and Facebook Marketplace — market-comp research, pricing strategy, listing copy, and negotiation across 40+ concurrent listings; built the AI-assisted operations pipeline above. Computer science coursework (Ohio State) and Sabio full-stack bootcamp training completed concurrently.</p>
     </div>
     <div class="job">
       <div class="jobhead"><span><b>Revenue Cycle Operations Coordinator</b> <span class="org">— Ballad Health (formerly Mountain States Health Alliance)</span></span><span class="dates">2014 – 2019</span></div>
-      <p>Standardized reporting behind $1B+ in annual billing across 13 hospitals; sole support for six revenue-cycle systems; built the daily revenue-cycle dashboard reported to CFOs; managed 3 direct reports with oversight of 18 coders.</p>
+      <p>Standardized reporting behind $1B+ in annual billing across 13 hospitals; sole support for six revenue-cycle systems; built the front-end revenue-cycle dashboard reported daily to CFOs; built utilization reporting that senior leadership adopted into revised staffing models; managed 3 direct reports with oversight of 18 coders.</p>
     </div>
     <div class="job">
       <div class="jobhead"><span><b>Revenue Cycle Precertification Coordinator</b> <span class="org">— Ballad Health</span></span><span class="dates">2013 – 2014</span></div>
     </div>
     <div class="job">
       <div class="jobhead"><span><b>Patient Access Representative</b> <span class="org">— Ballad Health</span></span><span class="dates">2009 – 2013</span></div>
-      <p>Registration and insurance eligibility for up to 100 patients daily; trained new team members across facilities during software launches.</p>
+      <p>Registration and insurance eligibility (Medicare, Medicaid, BCBS) for up to 100 patients daily; trained new team members across facilities during software launches.</p>
     </div>
     <p style="margin-top:18px"><a href="ryan-grey-cv.pdf">Full CV with details and education →</a></p>
   </section>
