@@ -38,6 +38,9 @@ jobs:
       - name: Check stack manifest against the chip row
         run: python3 infra/check-stack-drift.py --readme
 
+      - name: Check chatbot corpus against its sources
+        run: python3 infra/check-corpus-drift.py
+
       - name: Assume AWS role via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
