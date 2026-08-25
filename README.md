@@ -1,6 +1,6 @@
 # ryangrey.dev
 
-My personal site. One HTML file, no build step, no dependencies, no JavaScript, and no external requests — served from a private S3 bucket behind CloudFront.
+My personal site. No build step, no dependencies, and no external requests — served from a private S3 bucket behind CloudFront. The page itself is a single HTML file with no JavaScript; a second page, `/ask`, adds a retrieval-augmented chatbot running on Bedrock.
 
 **Live:** <https://ryangrey.dev>
 
@@ -14,18 +14,20 @@ I set these up front and held to them:
 | --- | --- |
 | No build tooling | Edit `index.html`, sync, done. Nothing to install, nothing to break in two years. |
 | No frameworks | 0 dependencies. No `node_modules`, no lockfile, no supply chain. |
-| No external requests | No CDN, no analytics, no web fonts, no trackers. Nothing loads from a third party. |
-| No JavaScript | 0 `<script>` tags. Dark/light theming is pure CSS via `prefers-color-scheme`. |
+| No external requests | No CDN, no analytics, no web fonts, no trackers. Nothing loads from a third party. The chatbot calls `/api/ask` on the same origin. |
+| No JavaScript | 0 `<script>` tags on the main page. Dark/light theming is pure CSS via `prefers-color-scheme`. The `/ask` chatbot page is the one deliberate exception and carries its own separately scoped CSP. |
 | System font stack | Zero font payload; renders natively on every platform. |
 
 Total page weight, everything included:
 
 | Asset | Size |
 | --- | --- |
-| `index.html` (markup + inline CSS + inline SVG) | 14.3 KB |
+| `index.html` (markup + inline CSS + inline SVG) | 16.1 KB |
 | Profile photo (JPEG, EXIF stripped) | 29.9 KB |
 | AWS certification badge (PNG) | 44.9 KB |
-| **Total** | **~87 KB** |
+| **Total** | **~91 KB** |
+
+The `/ask` page is a separate 4.6 KB document plus 2.0 KB of JavaScript, loaded only if a visitor goes there.
 
 ## Architecture
 
@@ -33,12 +35,18 @@ Total page weight, everything included:
 flowchart LR
     U["Browser"] --> R53["Route 53<br/><small>DNS · ryangrey.dev</small>"]
     R53 --> CF["CloudFront<br/><small>CDN · ACM TLS</small>"]
-    CF --> S3["S3<br/><small>private origin</small>"]
+    CF -->|"/*"| S3["S3<br/><small>private origin</small>"]
+    CF -->|"/api/ask"| AG["API Gateway<br/><small>chatbot origin</small>"]
+    AG --> L["Lambda<br/><small>RAG handler</small>"]
+    L --> BR["Bedrock<br/><small>Nova Lite · Titan</small>"]
 
     style U fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style R53 fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style CF fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style S3 fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style AG fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style L fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style BR fill:#eef2f7,stroke:#7a8494,color:#1c1e21
 ```
 
 - **S3** holds the static files. The bucket is **private** — it is not a website-endpoint bucket and has no public read policy.
@@ -46,6 +54,8 @@ flowchart LR
 - **ACM** provides the TLS certificate (free, auto-renewing), attached to the distribution.
 - **Route 53** holds the hosted zone, with an A-record alias pointing the apex domain at CloudFront.
 - **`.dev` is on the HSTS preload list**, so every connection is HTTPS by force — browsers refuse plaintext to the TLD before a request is ever made.
+- **CloudFront Functions** run at the edge on the default behavior: one on viewer-request to map directory URIs to their `index.html`, one on viewer-response to add security headers.
+- **A second cache behavior** on `/api/ask` sends the chatbot's requests to API Gateway instead of S3, which is what keeps the browser call same-origin.
 
 ## Deep dive: a DNSSEC teardown mid-migration
 
@@ -206,6 +216,8 @@ Two judgement calls are worth stating outright:
 - **`img-src` must include `data:`.** The favicon is an inline `data:image/svg+xml` URI. Omit `data:` and the tab icon silently disappears while every other check still passes.
 - **`style-src 'unsafe-inline'` is a deliberate compromise.** The CSS is one inline `<style>` block; the strict alternative is a `sha256-` hash of its exact contents, which goes stale on *every* CSS edit and fails silently to an unstyled page. With no JavaScript on the page, there is nothing to weaponise CSS injection against, so the hash buys very little for real operational risk.
 
+**The `/ask` page gets its own policy.** The chatbot needs a script and a `fetch` back to `/api/ask`, which `script-src 'none'; connect-src 'none'` forbids outright. Rather than loosen the site-wide policy to accommodate one page, the function branches on the request URI and serves a second, separately scoped policy to paths under `/ask` — `script-src 'self'; connect-src 'self'`, everything else unchanged. The main page keeps `script-src 'none'` byte for byte. A narrow second policy, not a weakened first one.
+
 `X-XSS-Protection` is deliberately **not** set — it is deprecated, and with a real CSP present it can introduce vulnerabilities rather than prevent them.
 
 ### Deploying header changes
@@ -215,6 +227,80 @@ DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-security-headers.sh
 ```
 
 Idempotent. It updates the function, runs `test-function` against a sample event and prints the resulting headers **before** publishing, then associates it with the distribution if it isn't already. The pre-publish test matters: a broken CSP fails silently — the headers still look perfect in `curl` while images vanish and the page renders unstyled. Verify in a browser, not just with `curl -I`.
+
+## Ask about Ryan: RAG on Bedrock
+
+**Live:** <https://ryangrey.dev/ask>
+
+A retrieval-augmented chatbot that answers questions about my background from a corpus built out of this site and my CV — rather than from whatever a foundation model happens to associate with the name.
+
+```mermaid
+flowchart LR
+    B["Browser<br/><small>/ask</small>"] --> CF["CloudFront<br/><small>/api/ask</small>"]
+    CF --> AG["API Gateway"]
+    AG --> L["Lambda<br/><small>retrieve + generate</small>"]
+    L --> DDB["DynamoDB<br/><small>rate limit counters</small>"]
+    L --> EMB["Bedrock<br/><small>Titan embeddings</small>"]
+    L --> GEN["Bedrock<br/><small>Nova Lite</small>"]
+
+    style B fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style CF fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style AG fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style L fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style DDB fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style EMB fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style GEN fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+```
+
+### No vector database
+
+The corpus is 13 chunks. Embedded at 1,024 dimensions that is roughly 286 KB of JSON, shipped inside the deployment package. The Lambda loads it at cold start and scores cosine similarity in a plain Python loop over 13 vectors.
+
+A managed vector store would add a service, a bill, and a second copy of the site's content to keep in sync — and would return the same four chunks. At this scale it is cost without benefit. The scaling note, stated honestly: brute-force search is linear in corpus size and stops being sensible somewhere in the low thousands of chunks.
+
+**The embedding model is a trap worth writing down.** The Bedrock API labels *two* different models "Titan Text Embeddings v2". `amazon.titan-embed-text-v2:0` is the current one at 1,024 dimensions; `amazon.titan-embed-g1-text-02` carries the same display name but is the older generation at 1,536 dimensions and several times the price. They are not interchangeable — vectors written by one cannot be queried by the other, and the mismatch does not raise an error, it silently returns meaningless rankings. The corpus file records the model and dimension count it was built with, and the drift check verifies both.
+
+### A public LLM endpoint is an unbounded bill
+
+Anyone can POST to `/api/ask`. That makes cost a security property, not an operational afterthought, so the handler runs every cheap check before any billable one:
+
+```
+body size (500 chars)  →  global monthly cap  →  per-IP hourly cap  →  embed  →  generate
+```
+
+Counters live in DynamoDB with a TTL, so expiry costs nothing and needs no cleanup job — the role is not granted `DeleteItem` at all.
+
+The limiter **fails closed**. If DynamoDB errors, the request is denied rather than allowed. Failing open is the tempting default because it protects availability, but on a metered endpoint it converts a dependency outage into an uncapped bill.
+
+Rate limiting keys on the leftmost `X-Forwarded-For` entry. `requestContext.sourceIp` is API Gateway's view of *CloudFront*, so limiting on it would bucket every visitor on earth into one counter. `X-Forwarded-For` is client-supplied and therefore spoofable — acceptable here, because the global monthly counter is what actually bounds spend, and that one cannot be evaded by forging a header.
+
+### Grounding and prompt injection
+
+The model is handed the retrieved chunks and the question, with the question explicitly labelled as data rather than instructions, and a system prompt that tells it to answer only from the context, invent no numbers, and decline anything off-topic. Responses cite the headings of the chunks they were drawn from, so an answer can be traced back to source text.
+
+None of that is a security boundary on its own — prompt injection is mitigated here, not solved. The actual boundary is IAM: the browser never holds a credential, and the Lambda's role can invoke exactly two model ARNs and touch one table. The worst outcome of a successful injection is an off-topic answer, not access to anything.
+
+**Inference profiles need two-part IAM.** Granting the profile ARN alone fails at invoke time — the policy also needs the underlying foundation-model ARN in *every* region the profile spans, three of them for `us.amazon.nova-lite-v1:0`.
+
+### The corpus is generated, so it can drift
+
+`index.html` is one of the corpus's sources. Edit the page, and the chatbot keeps answering from the previous version — confidently, with citations, and with no error anywhere to notice.
+
+So `infra/build-corpus.py` records a hash of every source it read, and `infra/check-corpus-drift.py` fails the deploy when the page no longer matches. Same principle as the chip-row guard below: the failure mode is silent staleness, so the tripwire has to be mechanical.
+
+### Directory index rewriting
+
+The S3 origin is a REST origin behind OAC, not a website endpoint, so it has no concept of a directory index, and `DefaultRootObject` only applies at the distribution root. `/` served `index.html` while `/ask/` returned a bare 403. A viewer-request function closes the gap: URIs ending in `/` get `index.html` appended, extensionless URIs get `/index.html`, and anything containing a dot passes through untouched.
+
+It is associated with the **default** cache behavior only. Attaching it to `/api/ask` as well would rewrite that path to `/api/ask/index.html` and break the chatbot.
+
+```bash
+DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-index-rewrite.sh
+```
+
+Same shape as the header deploy — update, test, publish, associate — with one difference: the pre-publish step *asserts* the rewrite contract across six URIs and refuses to publish on a mismatch, rather than printing results to be eyeballed. A rewrite that sends a real file down the directory branch 403s the whole site.
+
+Both function deploys **merge** associations by event type instead of overwriting the list. Writing a bare one-item list is the obvious implementation and silently detaches whichever function is attached to the other event type — deploy the headers, lose the rewrite, discover it when a visitor hits `/ask`.
 
 ## Alert delivery: SNS → Lambda → SES
 
@@ -314,6 +400,8 @@ The monthly email is a heartbeat: its arrival confirms the chain works. Its **ab
 
 ```
 index.html                          the entire site — markup, CSS, and SVG diagram
+ask/index.html                      the "Ask about Ryan" chat page
+ask/app.js                          its client (the site's only JavaScript)
 ryan-grey.jpg                       profile photo (EXIF stripped)
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
 ryan-grey-cv.pdf                    CV linked from the page
@@ -321,6 +409,13 @@ ryan-grey-cv.pdf                    CV linked from the page
 infra/setup-oidc.sh                 one-time IAM OIDC provider + role setup
 infra/cloudfront-security-headers.js   viewer-response function: security headers
 infra/deploy-security-headers.sh    deploys/updates that function
+infra/cloudfront-index-rewrite.js   viewer-request function: directory index rewriting
+infra/deploy-index-rewrite.sh       deploys/updates that function
+infra/chatbot/handler.py            RAG endpoint: retrieve, generate, rate limit
+infra/deploy-chatbot.sh             provisions the Lambda, API Gateway, and table
+infra/build-corpus.py               chunks + embeds the site and CV into corpus.json
+infra/corpus.json                   the embedded corpus, shipped with the Lambda
+infra/check-corpus-drift.py         fails the deploy if the corpus is stale
 infra/ses_alert_lambda.py           SNS -> SES alert forwarder (Lambda)
 infra/setup-ses-alerts.sh           provisions SES identity, DKIM, Lambda, subscription
 infra/setup-alert-pipeline-test.sh  monthly self-test of the alert delivery path

@@ -195,11 +195,16 @@
     </div>
 
     <div class="project">
-      <span class="status dev">In development</span>
+      <span class="status live">Live</span>
       <h3>Retrieval-Augmented Chatbot on Amazon Bedrock</h3>
-      <div class="meta">Hands-on build alongside the AWS AI Practitioner certification track.</div>
-      <p>A RAG chatbot that answers questions from a personal document corpus instead of hallucinating from general knowledge. Built to understand the retrieval pipeline from the inside — chunking, embedding, and grounding — rather than treating the model as a black box. This page updates as the build progresses.</p>
-      <div class="stack"><span>Amazon Bedrock</span><span>RAG</span><span>Embeddings</span><span>Python</span></div>
+      <div class="meta"><a href="/ask">Ask it a question about my background &rarr;</a></div>
+      <p>A RAG chatbot grounded in a corpus built from this page and my CV, so it answers from source text instead of hallucinating from general knowledge. Built alongside the AWS AI Practitioner track to understand the retrieval pipeline from the inside — chunking, embedding, and grounding — rather than treating the model as a black box.</p>
+      <ul class="caps">
+        <li><b>No vector database</b> — the corpus is embedded with Titan v2 and cosine similarity runs inside the Lambda; a managed vector store at this scale is cost without benefit</li>
+        <li><b>Answers cite their sources</b> — the model sees only the retrieved chunks and is told to say it doesn't know rather than fill the gap</li>
+        <li><b>Bounded by design</b> — a public LLM endpoint is an unbounded bill, so per-IP and global caps in DynamoDB fail closed, and the visitor's question is passed to the model as data, never as instructions</li>
+      </ul>
+      <div class="stack"><span>Amazon Bedrock</span><span>Nova Lite</span><span>Titan Embeddings</span><span>RAG</span><span>Lambda</span><span>API Gateway</span><span>DynamoDB</span><span>Python</span></div>
     </div>
 
     <div class="project">

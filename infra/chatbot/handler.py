@@ -1,7 +1,7 @@
 """
 "Ask about Ryan" -- retrieval-augmented chat endpoint for ryangrey.dev.
 
-Browser -> Lambda Function URL -> here -> Bedrock. No credentials ever reach
+Browser -> CloudFront -> API Gateway -> here -> Bedrock. No credentials ever reach
 the client; this function holds the only identity, and its role can invoke
 exactly two model ARNs and touch one DynamoDB table.
 
