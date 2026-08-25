@@ -92,6 +92,11 @@
   .status.live { color: #2e7d46; }
   .status.dev { color: #b07a1e; }
   .outcome { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--muted); font-size: 15.5px; }
+  .caps { list-style: none; margin: 14px 0 2px; }
+  .caps li { position: relative; padding-left: 17px; margin-bottom: 7px; font-size: 15.5px; color: var(--muted); }
+  .caps li::before { content: "\25B8"; position: absolute; left: 0; top: -1px; color: var(--accent); font-size: 13px; }
+  .caps b { color: var(--ink); font-weight: 600; }
+  .more { font-size: 15px; margin-top: 12px; }
 
   /* Diagram */
   .diagram { margin: 16px 0 4px; overflow-x: auto; }
@@ -156,6 +161,12 @@
       <h3>This Website</h3>
       <div class="meta">Static site served entirely from AWS — the site is its own case study.</div>
       <p>Registered domain transferred from GoDaddy to Route 53 (including tearing down a stale DNSSEC chain — DS records deleted at the .dev registry before the nameserver cutover, so resolution never broke). Hosted from S3, fronted by CloudFront with a free ACM certificate. The .dev TLD is HSTS-preloaded, so every connection is HTTPS by force.</p>
+      <ul class="caps">
+        <li><b>Keyless CI/CD</b> — OIDC-federated deploys, no stored credentials; every deploy verified byte-for-byte against the commit</li>
+        <li><b>Security headers at the edge</b> — CSP <b style="font-weight:600">script-src 'none'</b>; zero JavaScript</li>
+        <li><b>Self-testing monitoring</b> — alarm &rarr; SNS &rarr; Lambda &rarr; SES, with a monthly heartbeat that shares no failure modes with the path it tests</li>
+      </ul>
+      <p class="more"><a href="https://github.com/ryan-grey/ryangrey.dev">Full write-ups and infrastructure code on GitHub &rarr;</a></p>
       <div class="diagram" aria-label="Architecture diagram: browser to Route 53 to CloudFront with ACM certificate to S3 bucket">
         <svg viewBox="0 0 640 130" role="img">
           <defs>
