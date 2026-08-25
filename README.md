@@ -19,10 +19,10 @@ Total page weight, everything included:
 
 | Asset | Size |
 | --- | --- |
-| `index.html` (markup + inline CSS + inline SVG) | 16.1 KB |
+| `index.html` (markup + inline CSS + inline SVG) | 17.7 KB |
 | Profile photo (JPEG, EXIF stripped) | 29.9 KB |
 | AWS certification badge (PNG) | 44.9 KB |
-| **Total** | **~91 KB** |
+| **Total** | **~93 KB** |
 
 
 ## Architecture
