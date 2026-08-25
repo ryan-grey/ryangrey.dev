@@ -21,6 +21,7 @@ TOPIC="arn:aws:sns:us-east-1:<AWS_ACCOUNT_ID>:ryangrey-dev-alerts"
 CHAT_MODEL="us.amazon.nova-lite-v1:0"
 EMBED_MODEL="amazon.titan-embed-text-v2:0"
 ORIGIN="https://ryangrey.dev"
+DISTRIBUTION_ID="E34DKYH94YDAYR"
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 [ -f "${HERE}/corpus.json" ] || { echo "missing corpus.json -- run build-corpus.py" >&2; exit 1; }
@@ -61,19 +62,32 @@ else
   echo "    Budget is still bounded by the GLOBAL_MONTHLY counter in DynamoDB."
 fi
 
+# The Function URL is AWS_IAM, not public. It is reachable only through the
+# CloudFront distribution, which signs requests with SigV4 via Origin Access
+# Control. Two reasons: a public Function URL is blocked at the URL auth layer
+# on this account (403 before the function is ever invoked), and fronting it
+# makes the call same-origin from ryangrey.dev -- no CORS, and CSP can stay
+# connect-src 'self'.
 if aws lambda get-function-url-config --function-name "$FN" --region "$REGION" >/dev/null 2>&1; then
-  echo "[=] Function URL exists"
+  aws lambda update-function-url-config --function-name "$FN" --region "$REGION" \
+    --auth-type AWS_IAM >/dev/null
+  echo "[=] Function URL exists (AWS_IAM)"
 else
-  echo "[+] Creating Function URL"
+  echo "[+] Creating Function URL (AWS_IAM)"
   aws lambda create-function-url-config --function-name "$FN" --region "$REGION" \
-    --auth-type NONE \
-    --cors "AllowOrigins=${ORIGIN},AllowMethods=POST,AllowHeaders=content-type,MaxAge=86400" >/dev/null
-  aws lambda add-permission --function-name "$FN" --region "$REGION" \
-    --statement-id public-function-url --action lambda:InvokeFunctionUrl \
-    --principal "*" --function-url-auth-type NONE >/dev/null
+    --auth-type AWS_IAM >/dev/null
 fi
 
+# Only this distribution may invoke it.
+aws lambda add-permission --function-name "$FN" --region "$REGION" \
+  --statement-id cloudfront-oac --action lambda:InvokeFunctionUrl \
+  --principal cloudfront.amazonaws.com \
+  --source-arn "arn:aws:cloudfront::<AWS_ACCOUNT_ID>:distribution/${DISTRIBUTION_ID}" \
+  --function-url-auth-type AWS_IAM >/dev/null 2>&1 \
+  && echo "[+] CloudFront invoke permission added" \
+  || echo "[=] CloudFront invoke permission already present"
+
 rm -rf "$TMP"
-URL="$(aws lambda get-function-url-config --function-name "$FN" --region "$REGION" --query FunctionUrl --output text)"
 echo
-echo "Function URL: ${URL}"
+echo "Endpoint (public):  ${ORIGIN}/api/ask"
+echo "Origin (IAM-only):  $(aws lambda get-function-url-config --function-name "$FN" --region "$REGION" --query FunctionUrl --output text)"

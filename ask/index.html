@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask about Ryan — ryangrey.dev</title>
+<meta name="description" content="Ask questions about Ryan Grey's experience and projects. Answers are grounded in the site content and CV.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d3a5f'/%3E%3Ctext x='32' y='42' font-family='Helvetica,Arial' font-size='26' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3ERG%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #fafaf8; --ink: #1c1e21; --muted: #5c6470; --line: #e3e1dc;
+    --accent: #1d5fa0; --accent-ink: #174a7e; --card: #ffffff; --chip: #eef2f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --ink: #e8e6e3; --muted: #9aa3af; --line: #262b33;
+      --accent: #6aa8e0; --accent-ink: #8dbceb; --card: #191d24; --chip: #212832;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 48px 22px 80px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .kicker { font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 34px; line-height: 1.15; margin: 6px 0 10px; letter-spacing: -0.5px; }
+  .lede { color: var(--muted); margin-bottom: 26px; }
+
+  form { display: flex; gap: 10px; flex-wrap: wrap; }
+  label { position: absolute; left: -9999px; }
+  input[type=text] {
+    flex: 1 1 320px; font: inherit; font-size: 16px; color: var(--ink);
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button {
+    font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: #fff; border: 1px solid var(--accent);
+    border-radius: 999px; padding: 11px 22px;
+  }
+  button[disabled] { opacity: .55; cursor: default; }
+  .hint { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .examples button {
+    background: var(--chip); color: var(--accent-ink); border: 1px solid var(--line);
+    font-size: 13.5px; font-weight: 600; padding: 6px 13px;
+  }
+
+  #answer {
+    margin-top: 28px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px 22px; display: none;
+  }
+  #answer.show { display: block; }
+  #answer.err { border-color: #b3543f; }
+  #answer p { margin-bottom: 10px; }
+  .srcs { font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; }
+  .srcs span { background: var(--chip); border-radius: 4px; padding: 2px 8px; margin-right: 6px; display: inline-block; }
+
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">ryangrey.dev</div>
+  <h1>Ask about Ryan</h1>
+  <p class="lede">Questions about Ryan Grey's experience, projects, and skills. Answers come only from this site and his CV — if it isn't in there, the assistant will say so rather than guess.</p>
+
+  <form id="f">
+    <label for="q">Your question</label>
+    <input type="text" id="q" name="q" maxlength="500" autocomplete="off"
+           placeholder="What's his AWS experience?" required>
+    <button type="submit" id="go">Ask</button>
+  </form>
+  <div class="hint" id="hint">Grounded in the site content and CV. Rate limited.</div>
+
+  <div class="examples" id="ex">
+    <button type="button" data-q="What is Ryan's healthcare experience?">Healthcare background</button>
+    <button type="button" data-q="What AWS certifications does Ryan have?">Certifications</button>
+    <button type="button" data-q="How is this website built and deployed?">How this site works</button>
+    <button type="button" data-q="What has he automated with AI?">AI projects</button>
+  </div>
+
+  <div id="answer" aria-live="polite"></div>
+
+  <footer><a href="/">&larr; Back to ryangrey.dev</a></footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

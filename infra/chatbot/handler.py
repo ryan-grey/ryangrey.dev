@@ -123,6 +123,26 @@ def _retrieve(query_vec, k=TOP_K):
     return scored[:k]
 
 
+def _client_ip(event):
+    """The real visitor address, not the proxy's.
+
+    Requests arrive Browser -> CloudFront -> API Gateway -> here, so
+    requestContext.sourceIp is API Gateway's view of CloudFront -- rate
+    limiting on it would bucket every visitor together. X-Forwarded-For is
+    appended left-to-right, so the leftmost entry is the original client.
+    It is client-supplied and therefore spoofable; that is acceptable here
+    because the GLOBAL monthly counter, not the per-IP one, is what actually
+    bounds spend.
+    """
+    headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
+    xff = headers.get("x-forwarded-for", "")
+    if xff:
+        first = xff.split(",")[0].strip()
+        if first:
+            return first
+    return event.get("requestContext", {}).get("http", {}).get("sourceIp", "unknown")
+
+
 def handler(event, context):
     method = (event.get("requestContext", {}).get("http", {}).get("method") or "").upper()
     if method == "OPTIONS":
@@ -141,7 +161,7 @@ def handler(event, context):
     if len(question) > MAX_QUESTION_CHARS:
         return _cors(413, {"error": f"question must be {MAX_QUESTION_CHARS} characters or fewer"})
 
-    ip = event.get("requestContext", {}).get("http", {}).get("sourceIp", "unknown")
+    ip = _client_ip(event)
     now = time.gmtime()
     hour_key = f"ip:{ip}:{now.tm_year}{now.tm_yday:03d}{now.tm_hour:02d}"
     month_key = f"global:{now.tm_year}{now.tm_mon:02d}"
