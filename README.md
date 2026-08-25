@@ -1,6 +1,5 @@
 # ryangrey.dev
 
-My personal site. One HTML file, no build step, no dependencies, no JavaScript, and no external requests — served from a private S3 bucket behind CloudFront.
 
 **Live:** <https://ryangrey.dev>
 
@@ -14,18 +13,17 @@ I set these up front and held to them:
 | --- | --- |
 | No build tooling | Edit `index.html`, sync, done. Nothing to install, nothing to break in two years. |
 | No frameworks | 0 dependencies. No `node_modules`, no lockfile, no supply chain. |
-| No external requests | No CDN, no analytics, no web fonts, no trackers. Nothing loads from a third party. |
-| No JavaScript | 0 `<script>` tags. Dark/light theming is pure CSS via `prefers-color-scheme`. |
 | System font stack | Zero font payload; renders natively on every platform. |
 
 Total page weight, everything included:
 
 | Asset | Size |
 | --- | --- |
-| `index.html` (markup + inline CSS + inline SVG) | 14.3 KB |
+| `index.html` (markup + inline CSS + inline SVG) | 16.1 KB |
 | Profile photo (JPEG, EXIF stripped) | 29.9 KB |
 | AWS certification badge (PNG) | 44.9 KB |
-| **Total** | **~87 KB** |
+| **Total** | **~91 KB** |
+
 
 ## Architecture
 
@@ -33,12 +31,17 @@ Total page weight, everything included:
 flowchart LR
     U["Browser"] --> R53["Route 53<br/><small>DNS · ryangrey.dev</small>"]
     R53 --> CF["CloudFront<br/><small>CDN · ACM TLS</small>"]
-    CF --> S3["S3<br/><small>private origin</small>"]
+    CF -->|"/*"| S3["S3<br/><small>private origin</small>"]
+    AG --> L["Lambda<br/><small>RAG handler</small>"]
+    L --> BR["Bedrock<br/><small>Nova Lite · Titan</small>"]
 
     style U fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style R53 fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style CF fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style S3 fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style AG fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style L fill:#eef2f7,stroke:#7a8494,color:#1c1e21
+    style BR fill:#eef2f7,stroke:#7a8494,color:#1c1e21
 ```
 
 - **S3** holds the static files. The bucket is **private** — it is not a website-endpoint bucket and has no public read policy.
@@ -46,6 +49,7 @@ flowchart LR
 - **ACM** provides the TLS certificate (free, auto-renewing), attached to the distribution.
 - **Route 53** holds the hosted zone, with an A-record alias pointing the apex domain at CloudFront.
 - **`.dev` is on the HSTS preload list**, so every connection is HTTPS by force — browsers refuse plaintext to the TLD before a request is ever made.
+- **CloudFront Functions** run at the edge on the default behavior: one on viewer-request to map directory URIs to their `index.html`, one on viewer-response to add security headers.
 
 ## Deep dive: a DNSSEC teardown mid-migration
 
@@ -206,6 +210,7 @@ Two judgement calls are worth stating outright:
 - **`img-src` must include `data:`.** The favicon is an inline `data:image/svg+xml` URI. Omit `data:` and the tab icon silently disappears while every other check still passes.
 - **`style-src 'unsafe-inline'` is a deliberate compromise.** The CSS is one inline `<style>` block; the strict alternative is a `sha256-` hash of its exact contents, which goes stale on *every* CSS edit and fails silently to an unstyled page. With no JavaScript on the page, there is nothing to weaponise CSS injection against, so the hash buys very little for real operational risk.
 
+
 `X-XSS-Protection` is deliberately **not** set — it is deprecated, and with a real CSP present it can introduce vulnerabilities rather than prevent them.
 
 ### Deploying header changes
@@ -215,6 +220,17 @@ DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-security-headers.sh
 ```
 
 Idempotent. It updates the function, runs `test-function` against a sample event and prints the resulting headers **before** publishing, then associates it with the distribution if it isn't already. The pre-publish test matters: a broken CSP fails silently — the headers still look perfect in `curl` while images vanish and the page renders unstyled. Verify in a browser, not just with `curl -I`.
+
+### Directory index rewriting
+
+
+
+```bash
+DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-index-rewrite.sh
+```
+
+Same shape as the header deploy — update, test, publish, associate — with one difference: the pre-publish step *asserts* the rewrite contract across six URIs and refuses to publish on a mismatch, rather than printing results to be eyeballed. A rewrite that sends a real file down the directory branch 403s the whole site.
+
 
 ## Alert delivery: SNS → Lambda → SES
 
@@ -314,6 +330,8 @@ The monthly email is a heartbeat: its arrival confirms the chain works. Its **ab
 
 ```
 index.html                          the entire site — markup, CSS, and SVG diagram
+ask/index.html                      the "Ask about Ryan" chat page
+ask/app.js                          its client (the site's only JavaScript)
 ryan-grey.jpg                       profile photo (EXIF stripped)
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
 ryan-grey-cv.pdf                    CV linked from the page
@@ -321,6 +339,8 @@ ryan-grey-cv.pdf                    CV linked from the page
 infra/setup-oidc.sh                 one-time IAM OIDC provider + role setup
 infra/cloudfront-security-headers.js   viewer-response function: security headers
 infra/deploy-security-headers.sh    deploys/updates that function
+infra/cloudfront-index-rewrite.js   viewer-request function: directory index rewriting
+infra/deploy-index-rewrite.sh       deploys/updates that function
 infra/ses_alert_lambda.py           SNS -> SES alert forwarder (Lambda)
 infra/setup-ses-alerts.sh           provisions SES identity, DKIM, Lambda, subscription
 infra/setup-alert-pipeline-test.sh  monthly self-test of the alert delivery path
