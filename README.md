@@ -261,6 +261,36 @@ bash setup-ses-alerts.sh
 
 Idempotent. Creates the SES identity, DNS records, IAM role, Lambda, and SNS subscription; re-running updates the function in place.
 
+## Testing the alert path
+
+Alerts reach the inbox through a Lambda. If that function breaks — a bad IAM scope, an SES change, a code error — the alarm still fires and SNS still publishes while **nothing arrives**. Every console screen reads healthy. That failure mode is not hypothetical: during the initial build the Lambda failed three consecutive invocations on an IAM scoping error while the topic and alarm both showed green.
+
+So the pipeline tests itself monthly:
+
+```mermaid
+flowchart LR
+    S["EventBridge Scheduler<br/><small>1st of month, 14:00 UTC</small>"] --> A["SetAlarmState<br/><small>ALARM</small>"]
+    A --> SNS["SNS"] --> L["Lambda"] --> SES["SES"] --> IN["Inbox"]
+    A -.->|"~5 min, real datapoints"| OK["back to OK"]
+```
+
+EventBridge Scheduler calls `cloudwatch:SetAlarmState` directly via a **universal target** — no Lambda in the test path, so the thing doing the testing shares no failure modes with the thing being tested. The alarm self-recovers on its next evaluation against real metric data, leaving no lasting state.
+
+The scheduler's role can call `SetAlarmState` on exactly one alarm ARN and nothing else.
+
+### Why not a GitHub Actions cron
+
+The repo already has keyless OIDC access to this account, so a scheduled workflow would have been less setup. **GitHub disables scheduled workflows in repositories with no commits for 60 days.** A personal site can easily go that long between changes, and the test would stop running silently — reproducing precisely the failure it exists to catch. A monitoring check that can quietly switch itself off is worse than none, because it manufactures false confidence.
+
+### Setup
+
+```bash
+curl -fsSL -o setup-alert-pipeline-test.sh https://raw.githubusercontent.com/ryan-grey/ryangrey.dev/main/infra/setup-alert-pipeline-test.sh
+bash setup-alert-pipeline-test.sh
+```
+
+The monthly email is a heartbeat: its arrival confirms the chain works. Its **absence** is the signal — worth knowing, since a missing email is easier to overlook than an arriving one.
+
 ## Contents
 
 ```
@@ -274,4 +304,5 @@ infra/cloudfront-security-headers.js   viewer-response function: security header
 infra/deploy-security-headers.sh    deploys/updates that function
 infra/ses_alert_lambda.py           SNS -> SES alert forwarder (Lambda)
 infra/setup-ses-alerts.sh           provisions SES identity, DKIM, Lambda, subscription
+infra/setup-alert-pipeline-test.sh  monthly self-test of the alert delivery path
 ```
