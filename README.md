@@ -261,6 +261,25 @@ bash setup-ses-alerts.sh
 
 Idempotent. Creates the SES identity, DNS records, IAM role, Lambda, and SNS subscription; re-running updates the function in place.
 
+## Guarding against drift
+
+The site has no build step, so the stack chips on the "This Website" card are hand-written — and they describe the same system as the CV and this README. They drifted once: capabilities were added to the card while the chip row still listed the original stack.
+
+Generating the chips would fix that by introducing a build step, trading away the property the whole site is built around. Instead the deploy refuses to ship a mismatch:
+
+```
+infra/stack.txt   →   the chip row in index.html
+        \_______  must agree exactly  _______/
+```
+
+`infra/check-stack-drift.py` runs as the **first step of the workflow**, before the role is assumed — drift needs no credentials to detect, and a stale chip row should never reach the bucket. The check is bidirectional: a manifest entry with no chip fails, and a chip with no manifest entry fails too. One-directional would let half the drift through.
+
+This extends the contract the workflow already enforces. It refuses to go green unless the live page byte-matches the commit; now green also means the page is internally consistent — **consistent, not merely uploaded**.
+
+The CV and this README stay hand-maintained deliberately. They change rarely and with intent. Chip rows change incidentally, alongside other edits, and incidental changes are the ones that need a tripwire.
+
+When a project adds services, the natural first edit is the manifest — at which point the deploy itself blocks until the card catches up.
+
 ## Testing the alert path
 
 Alerts reach the inbox through a Lambda. If that function breaks — a bad IAM scope, an SES change, a code error — the alarm still fires and SNS still publishes while **nothing arrives**. Every console screen reads healthy. That failure mode is not hypothetical: during the initial build the Lambda failed three consecutive invocations on an IAM scoping error while the topic and alarm both showed green.
@@ -305,4 +324,6 @@ infra/deploy-security-headers.sh    deploys/updates that function
 infra/ses_alert_lambda.py           SNS -> SES alert forwarder (Lambda)
 infra/setup-ses-alerts.sh           provisions SES identity, DKIM, Lambda, subscription
 infra/setup-alert-pipeline-test.sh  monthly self-test of the alert delivery path
+infra/stack.txt                     stack chip manifest for the site card
+infra/check-stack-drift.py          fails the deploy if the chip row drifts
 ```
