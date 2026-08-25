@@ -211,8 +211,8 @@
     <div class="project">
       <span class="status live">Live</span>
       <h3>Retrieval-Augmented Chatbot on Amazon Bedrock</h3>
-      <div class="meta"><a href="/ask/">Ask it a question about my background &rarr;</a></div>
-      <p>A RAG chatbot grounded in a corpus built from this page and my CV, so it answers from source text instead of hallucinating from general knowledge. Built alongside the AWS AI Practitioner track to understand the retrieval pipeline from the inside — chunking, embedding, and grounding — rather than treating the model as a black box.</p>
+      <div class="meta"><a href="/ask/">Ask the assistant a question &rarr;</a></div>
+      <p>A RAG chatbot grounded in a corpus built from this site and the CV, so it answers from source text instead of hallucinating from general knowledge. Built alongside the AWS AI Practitioner track to understand the retrieval pipeline from the inside — chunking, embedding, and grounding — rather than treating the model as a black box.</p>
       <ul class="caps">
         <li><b>No vector database</b> — the corpus is embedded with Titan v2 and cosine similarity runs inside the Lambda; a managed vector store at this scale is cost without benefit</li>
         <li><b>Answers cite their sources</b> — the model sees only the retrieved chunks and is told to say it doesn't know rather than fill the gap</li>
