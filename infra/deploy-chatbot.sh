@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Deploys the "Ask about Ryan" chatbot Lambda and its Function URL.
+# Deploys the "Ask about Ryan" chatbot Lambda and the HTTP API in front of it.
 #
 # Packages handler.py together with the generated corpus (infra/corpus.json),
 # so the retrieval index ships inside the function -- no vector database, no
@@ -20,8 +20,10 @@ TABLE="ryangrey-chatbot-ratelimit"
 TOPIC="arn:aws:sns:us-east-1:<AWS_ACCOUNT_ID>:ryangrey-dev-alerts"
 CHAT_MODEL="us.amazon.nova-lite-v1:0"
 EMBED_MODEL="amazon.titan-embed-text-v2:0"
+API_NAME="ryangrey-chatbot-api"
 ORIGIN="https://ryangrey.dev"
 DISTRIBUTION_ID="E34DKYH94YDAYR"
+ACCOUNT="$(echo "$ROLE_ARN" | cut -d: -f5)"
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 [ -f "${HERE}/corpus.json" ] || { echo "missing corpus.json -- run build-corpus.py" >&2; exit 1; }
@@ -62,32 +64,58 @@ else
   echo "    Budget is still bounded by the GLOBAL_MONTHLY counter in DynamoDB."
 fi
 
-# The Function URL is AWS_IAM, not public. It is reachable only through the
-# CloudFront distribution, which signs requests with SigV4 via Origin Access
-# Control. Two reasons: a public Function URL is blocked at the URL auth layer
-# on this account (403 before the function is ever invoked), and fronting it
-# makes the call same-origin from ryangrey.dev -- no CORS, and CSP can stay
-# connect-src 'self'.
-if aws lambda get-function-url-config --function-name "$FN" --region "$REGION" >/dev/null 2>&1; then
-  aws lambda update-function-url-config --function-name "$FN" --region "$REGION" \
-    --auth-type AWS_IAM >/dev/null
-  echo "[=] Function URL exists (AWS_IAM)"
+# An HTTP API, NOT a Lambda Function URL.
+#
+# A Function URL would have to be AWS_IAM (a public one is blocked at the URL
+# auth layer on this account) and CloudFront can only reach that by signing
+# SigV4 through OAC -- a second auth surface in the path for no gain. An HTTP
+# API is an ordinary custom origin: CloudFront proxies /api/ask straight to
+# it, so the browser call stays same-origin (no CORS preflight, and the CSP
+# for /ask keeps connect-src 'self'), and the function's resource policy names
+# this API as the only permitted caller.
+#
+# The execute-api endpoint is reachable directly, bypassing CloudFront. That
+# is deliberate: the rate limits live in the handler and run per-invocation
+# regardless of how the request arrived, so the budget bound does not depend
+# on traffic going through the CDN.
+FN_ARN="$(aws lambda get-function --function-name "$FN" --region "$REGION" \
+  --query Configuration.FunctionArn --output text)"
+
+API_ID="$(aws apigatewayv2 get-apis --region "$REGION" \
+  --query "Items[?Name=='${API_NAME}'].ApiId | [0]" --output text)"
+
+if [ "$API_ID" = "None" ] || [ -z "$API_ID" ]; then
+  echo "[+] Creating HTTP API ${API_NAME}"
+  # --target builds the AWS_PROXY integration, the $default route and an
+  # auto-deploying $default stage in one call.
+  API_ID="$(aws apigatewayv2 create-api --region "$REGION" --name "$API_NAME" \
+    --protocol-type HTTP --target "$FN_ARN" --query ApiId --output text)"
 else
-  echo "[+] Creating Function URL (AWS_IAM)"
-  aws lambda create-function-url-config --function-name "$FN" --region "$REGION" \
-    --auth-type AWS_IAM >/dev/null
+  echo "[=] HTTP API ${API_NAME} exists (${API_ID})"
 fi
 
-# Only this distribution may invoke it.
+# Only this API may invoke the function.
 aws lambda add-permission --function-name "$FN" --region "$REGION" \
-  --statement-id cloudfront-oac --action lambda:InvokeFunctionUrl \
-  --principal cloudfront.amazonaws.com \
-  --source-arn "arn:aws:cloudfront::<AWS_ACCOUNT_ID>:distribution/${DISTRIBUTION_ID}" \
-  --function-url-auth-type AWS_IAM >/dev/null 2>&1 \
-  && echo "[+] CloudFront invoke permission added" \
-  || echo "[=] CloudFront invoke permission already present"
+  --statement-id apigw-invoke --action lambda:InvokeFunction \
+  --principal apigateway.amazonaws.com \
+  --source-arn "arn:aws:execute-api:${REGION}:${ACCOUNT}:${API_ID}/*/*" >/dev/null 2>&1 \
+  && echo "[+] API Gateway invoke permission added" \
+  || echo "[=] API Gateway invoke permission already present"
+
+# The distribution's origin is configured by hand; a mismatch here means
+# /api/ask is proxying to some other API and no amount of Lambda deploying
+# will fix it. Non-fatal, but say so loudly.
+API_HOST="${API_ID}.execute-api.${REGION}.amazonaws.com"
+CF_HOST="$(aws cloudfront get-distribution-config --id "$DISTRIBUTION_ID" \
+  --query "DistributionConfig.Origins.Items[?Id=='chatbot-lambda'].DomainName | [0]" \
+  --output text 2>/dev/null || echo unknown)"
+if [ "$CF_HOST" = "$API_HOST" ]; then
+  echo "[=] CloudFront origin points at this API"
+else
+  echo "[!] CloudFront origin is ${CF_HOST}, expected ${API_HOST}"
+fi
 
 rm -rf "$TMP"
 echo
 echo "Endpoint (public):  ${ORIGIN}/api/ask"
-echo "Origin (IAM-only):  $(aws lambda get-function-url-config --function-name "$FN" --region "$REGION" --query FunctionUrl --output text)"
+echo "Origin (HTTP API):  https://${API_HOST}"
