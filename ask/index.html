@@ -91,6 +91,11 @@
 
   <footer><a href="/">&larr; Back to ryangrey.dev</a></footer>
 </main>
-<script src="app.js"></script>
+<!-- Absolute, not relative. This page is served at BOTH /ask and /ask/, and a
+     relative src resolves against the document URL: on /ask the browser would
+     ask for /app.js, get a 403, and the page would sit there dead -- the CSP
+     blocks the native form submit too, so the Ask button would do nothing at
+     all. Any asset added here must use an absolute path. -->
+<script src="/ask/app.js"></script>
 </body>
 </html>

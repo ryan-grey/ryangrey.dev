@@ -84,3 +84,10 @@ jobs:
           diff -q /tmp/live.html index.html \
             && echo "Live site matches committed index.html" \
             || { echo "Live site does not match repo"; exit 1; }
+
+      # Byte-matching the commit is not the same as working. A relative asset
+      # path can 403 on one of the two URLs a page is served at while every
+      # file in the bucket is correct. This resolves each reference the way a
+      # browser does and fetches it.
+      - name: Verify page assets resolve
+        run: python3 infra/check-page-assets.py
