@@ -47,7 +47,7 @@ flowchart LR
 - **Route 53** holds the hosted zone, with an A-record alias pointing the apex domain at CloudFront.
 - **`.dev` is on the HSTS preload list**, so every connection is HTTPS by force — browsers refuse plaintext to the TLD before a request is ever made.
 
-## The interesting part: a DNSSEC teardown mid-migration
+## Deep dive: a DNSSEC teardown mid-migration
 
 The domain started at GoDaddy and moved to Route 53. A straight nameserver cutover would have broken resolution, because the domain had **DNSSEC enabled** at the old registrar.
 
