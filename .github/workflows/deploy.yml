@@ -48,6 +48,11 @@ jobs:
       - name: Confirm assumed identity
         run: aws sts get-caller-identity
 
+      # Every object gets a Cache-Control header. Before 2026-08-26 none did, so browsers
+      # fell back to heuristic caching and kept serving a stale avatar and favicon after a
+      # brand change -- a CloudFront invalidation does not help, because the stale copy is
+      # in the visitor's browser, not the CDN. One hour bounds that, and revalidation after
+      # it is a cheap 304.
       - name: Sync site to S3
         run: |
           aws s3 sync . s3://ryangrey.dev \
@@ -59,7 +64,40 @@ jobs:
             --exclude "README.md" \
             --exclude ".DS_Store" \
             --exclude "*.md" \
-            --exclude ".*"
+            --exclude ".*" \
+            --cache-control "public, max-age=3600, must-revalidate"
+
+      # Two classes need something other than that default. These re-upload from the
+      # workspace rather than doing an S3-to-S3 copy in place: a copy reads the source
+      # object, and the deploy role has PutObject but deliberately not GetObject -- it
+      # pushes the site, it has no business reading the bucket back.
+      - name: Set the cache headers that differ from the default
+        run: |
+          # HTML must revalidate on every view, or a deploy stays invisible for an hour.
+          for f in index.html; do
+            aws s3 cp "$f" "s3://ryangrey.dev/$f" \
+              --content-type "text/html" \
+              --cache-control "public, max-age=0, must-revalidate" >/dev/null
+            echo "  $f  max-age=0, must-revalidate"
+          done
+          # Versioned assets. The filename changes whenever the bytes do, so a URL only
+          # ever holds one image and can be cached forever. This is the fix for a stale
+          # mark in someone's browser: new headers cannot expire a copy that was cached
+          # before those headers existed, but a new URL is never in the cache at all.
+          set_immutable() {
+            aws s3 cp "$1" "s3://ryangrey.dev/$1" \
+              --content-type "$2" \
+              --cache-control "public, max-age=31536000, immutable" >/dev/null
+            echo "  $1  immutable"
+          }
+          for f in og-card*.png rg-avatar-v*.png; do
+            [ -e "$f" ] || continue
+            set_immutable "$f" "image/png"
+          done
+          for f in favicon-v*.ico; do
+            [ -e "$f" ] || continue
+            set_immutable "$f" "image/vnd.microsoft.icon"
+          done
 
       - name: Invalidate CloudFront cache
         run: |
@@ -81,3 +119,10 @@ jobs:
           diff -q /tmp/live.html index.html \
             && echo "Live site matches committed index.html" \
             || { echo "Live site does not match repo"; exit 1; }
+
+      # Byte-matching the commit is not the same as working. A relative asset
+      # path can 403 on one of the two URLs a page is served at while every
+      # file in the bucket is correct. This resolves each reference the way a
+      # browser does and fetches it.
+      - name: Verify page assets resolve
+        run: python3 infra/check-page-assets.py
