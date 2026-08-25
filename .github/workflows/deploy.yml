@@ -33,6 +33,11 @@ jobs:
       # No access keys anywhere. The job presents a short-lived OIDC token;
       # AWS validates it against the trust policy and returns temporary
       # credentials scoped to this role. They expire when the job ends.
+      # Runs before any AWS call: a drifted chip row must never reach the
+      # bucket, and this needs no credentials to detect.
+      - name: Check stack manifest against the chip row
+        run: python3 infra/check-stack-drift.py --readme
+
       - name: Assume AWS role via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
