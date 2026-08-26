@@ -29,7 +29,7 @@ from urllib.parse import urljoin
 
 # Both spellings of every directory URL: a page reachable two ways must work
 # two ways, and the trailing slash is exactly what changes the resolution.
-PAGES = ["/", "/ask", "/ask/"]
+PAGES = ["/", "/ask", "/ask/", "/quiz", "/quiz/"]
 
 ASSET = re.compile(r'<(?:script|link|img)\b[^>]*?\b(?:src|href)\s*=\s*"([^"]+)"', re.I)
 OG_IMAGE = re.compile(r'<meta\b[^>]*?property="og:image"[^>]*?content="([^"]+)"', re.I)

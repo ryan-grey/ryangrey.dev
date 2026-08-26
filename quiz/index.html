@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIF Study Engine — ryangrey.dev</title>
+<meta name="description" content="Private spaced-repetition study tool for the AWS Certified AI Practitioner exam.">
+<meta name="robots" content="noindex, nofollow">
+<!-- Private tool behind Cognito. noindex keeps it out of search; the auth is what
+     actually protects it, since quiz generation invokes Bedrock and costs money. -->
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #fafaf8; --ink: #1c1e21; --muted: #5c6470; --line: #e3e1dc;
+    --accent: #1d5fa0; --accent-ink: #174a7e; --card: #ffffff; --chip: #eef2f7;
+    --good: #2e7d46; --bad: #b3261e; --warn: #9a5a12;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --ink: #e8e6e3; --muted: #9aa3af; --line: #262b33;
+      --accent: #6aa8e0; --accent-ink: #8dbceb; --card: #191d24; --chip: #212832;
+      --good: #5fd09b; --bad: #f08a80; --warn: #e5a75a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  a { color: var(--accent); }
+  h1 { font-size: 22px; margin: 0; }
+  h2 { font-size: 15px; letter-spacing: .06em; text-transform: uppercase;
+       color: var(--muted); margin: 0 0 10px; }
+  header { display: flex; justify-content: space-between; align-items: baseline;
+           gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line);
+           padding-bottom: 14px; margin-bottom: 22px; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  section { margin-bottom: 26px; }
+  .card { background: var(--card); border: 1px solid var(--line);
+          border-radius: 12px; padding: 16px 18px; }
+  button {
+    font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: #fff; border: 0;
+    border-radius: 8px; padding: 9px 15px;
+  }
+  button.ghost { background: transparent; color: var(--accent);
+                 border: 1px solid var(--line); }
+  button[disabled] { opacity: .5; cursor: default; }
+  select, input[type=number] {
+    font: inherit; font-size: 14px; padding: 7px 9px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .bar { height: 7px; background: var(--chip); border-radius: 99px; overflow: hidden;
+         margin: 10px 0 6px; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .q { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+       margin-bottom: 12px; background: var(--card); }
+  .q .tag { font-size: 11px; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; color: var(--muted); }
+  .q .tag.warm { color: var(--warn); }
+  .q p.stem { margin: 8px 0 12px; }
+  .choice { display: block; width: 100%; text-align: left; font: inherit;
+            background: var(--chip); color: var(--ink); border: 1px solid transparent;
+            border-radius: 8px; padding: 10px 12px; margin-bottom: 7px; cursor: pointer; }
+  .choice:hover:not([disabled]) { border-color: var(--accent); }
+  .choice.right { border-color: var(--good); }
+  .choice.wrong { border-color: var(--bad); }
+  .why { font-size: 14px; color: var(--muted); border-left: 3px solid var(--accent);
+         padding-left: 11px; margin-top: 10px; }
+  .miss { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line);
+          font-size: 14px; }
+  .miss:last-child { border-bottom: none; }
+  .pill { font-size: 11px; font-weight: 700; border-radius: 99px; padding: 2px 8px;
+          white-space: nowrap; background: var(--chip); color: var(--muted); }
+  .pill.due { background: var(--warn); color: #fff; }
+  .pill.ret { color: var(--good); }
+  .muted { color: var(--muted); font-size: 14px; }
+  .err { color: var(--bad); }
+  #gate { text-align: center; padding: 60px 20px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="gate">
+    <h1>AIF Study Engine</h1>
+    <p class="sub" id="gatemsg">Checking your session…</p>
+    <p><button id="signin" hidden>Sign in</button></p>
+  </div>
+
+  <div id="app" hidden>
+    <header>
+      <div>
+        <h1>AIF Study Engine</h1>
+        <div class="sub" id="who"></div>
+      </div>
+      <button class="ghost" id="signout">Sign out</button>
+    </header>
+
+    <section>
+      <h2>Progress</h2>
+      <div class="card">
+        <div id="progresslabel" class="muted"></div>
+        <div class="bar"><i id="progressbar" style="width:0"></i></div>
+        <div class="row" style="margin-top:10px">
+          <select id="lessonpick"></select>
+          <button id="saveprogress">Mark complete through here</button>
+        </div>
+        <p class="muted" style="margin:10px 0 0">Questions are generated only from lessons at
+        or before this marker. Anything past it is filtered out server-side and logged.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Tonight's quiz</h2>
+      <div class="row">
+        <label class="muted" for="count">Questions</label>
+        <input type="number" id="count" min="1" max="12" value="8">
+        <button id="gen">Generate quiz</button>
+        <span id="genstatus" class="muted"></span>
+      </div>
+      <div id="quiz" style="margin-top:16px"></div>
+      <div id="score" class="card" hidden></div>
+    </section>
+
+    <section>
+      <h2>Miss log</h2>
+      <div class="card" id="misses"></div>
+    </section>
+
+    <section>
+      <h2>Recent sessions</h2>
+      <div class="card" id="sessions"></div>
+    </section>
+  </div>
+
+</div>
+<script src="/quiz/app.js"></script>
+</body>
+</html>
