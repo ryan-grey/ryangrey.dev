@@ -32,6 +32,26 @@ var CSP_STRICT = "default-src 'none'; script-src 'none'; style-src 'unsafe-inlin
 // byte -- a second narrow policy, not a weakened first one.
 var CSP_ASK = "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'none'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests";
 
+// The study engine at /quiz signs in with Cognito. The browser does the PKCE token
+// exchange itself, which is one fetch to the Cognito hosted domain -- so connect-src
+// names that EXACT host and nothing else. No wildcard, no *.amazoncognito.com: only the
+// pool's own domain can be reached, so a different pool or a lookalike subdomain is
+// still blocked.
+//
+// This is the /ask precedent applied consistently, not a new concession. The public
+// pages keep CSP_STRICT byte for byte, so "zero external requests" remains true of
+// everything a visitor can reach without signing in.
+//
+// The alternative -- proxying the token exchange through Lambda -- was considered and
+// rejected: it is a BFF pattern that adds redirect handling, session cookies and new
+// failure modes to a single-user private tool.
+var COGNITO = "https://ryangrey-study.auth.us-east-1.amazoncognito.com";
+var CSP_QUIZ = "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'none'; connect-src 'self' " + COGNITO + "; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests";
+
+function under(uri, base) {
+    return uri === base || uri.indexOf(base + '/') === 0;
+}
+
 function handler(event) {
     var h = event.response.headers;
     var uri = event.request.uri;
@@ -39,7 +59,13 @@ function handler(event) {
     h['x-content-type-options']    = { value: 'nosniff' };
     h['x-frame-options']           = { value: 'DENY' };
     h['referrer-policy']           = { value: 'strict-origin-when-cross-origin' };
-    h['content-security-policy']   = { value: uri.indexOf('/ask') === 0 ? CSP_ASK : CSP_STRICT };
+    var csp = CSP_STRICT;
+    // Segment match, not prefix match. `uri.indexOf('/quiz') === 0` also matches
+    // /quizzical, which would hand a widened policy to an unrelated path; likewise
+    // /askew for the chat policy. Only the exact path or something beneath it counts.
+    if (under(uri, '/ask'))       { csp = CSP_ASK; }
+    else if (under(uri, '/quiz')) { csp = CSP_QUIZ; }
+    h['content-security-policy']   = { value: csp };
     h['permissions-policy']        = { value: 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()' };
     return event.response;
 }
