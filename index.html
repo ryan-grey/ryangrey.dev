@@ -180,7 +180,7 @@
     <h2>Technical Skills</h2>
     <div class="skillgroup">
       <h3>Cloud (AWS)</h3>
-      <div class="stack"><span>EC2</span><span>S3</span><span>IAM &amp; STS</span><span>VPC</span><span>Lambda</span><span>API Gateway</span><span>DynamoDB</span><span>CloudFront</span><span>Route 53</span><span>SNS</span><span>SES</span><span>CloudWatch</span><span>EventBridge</span><span>Cost Explorer &amp; Budgets</span><span>Amazon Bedrock</span><span>SageMaker (fundamentals)</span><span>AWS pricing &amp; Well-Architected Framework</span></div>
+      <div class="stack"><span>EC2</span><span>S3</span><span>IAM &amp; STS</span><span>Cognito</span><span>VPC</span><span>Lambda</span><span>API Gateway</span><span>DynamoDB</span><span>CloudFront</span><span>Route 53</span><span>SNS</span><span>SES</span><span>CloudWatch</span><span>EventBridge</span><span>Cost Explorer &amp; Budgets</span><span>Amazon Bedrock</span><span>SageMaker (fundamentals)</span><span>AWS pricing &amp; Well-Architected Framework</span></div>
     </div>
     <div class="skillgroup">
       <h3>Build &amp; Languages</h3>
@@ -255,6 +255,21 @@
         <figcaption>The panel, light and dark, on live data. The $17 month is a one-time domain transfer against a deliberately tight $5 guardrail &mdash; the app is showing a real breach, not a mock-up.</figcaption>
       </figure>
       <div class="stack"><span>Swift</span><span>SwiftUI</span><span>macOS</span><span>CloudWatch</span><span>Cost Explorer</span><span>IAM &amp; STS</span><span>AWS SigV4</span></div>
+    </div>
+
+    <div class="project">
+      <span class="status live">Live</span>
+      <h3>AIF Study Engine &mdash; Cognito-Gated Exam Prep</h3>
+      <div class="meta"><a href="https://github.com/ryan-grey/aif-study-engine">Source on GitHub &rarr;</a> &middot; private tool at /quiz</div>
+      <p>A spaced-repetition study tool built to pass the AWS AI Practitioner exam, and to get real Cognito experience while doing it. Bedrock writes the questions; the interesting engineering is in what it is not allowed to ask.</p>
+      <ul class="caps">
+        <li><b>Scope is a boundary, not a prompt</b> &mdash; questions may never cover a lesson not yet completed, so the model is only ever shown in-scope lesson titles AND every question it returns is re-checked against the allowed set, with anything dropped written to the log; a self-test asserts this at all 46 progress markers and gates the deploy</li>
+        <li><b>Fails closed twice</b> &mdash; an API Gateway JWT authorizer rejects unauthenticated calls before any code runs, because generation invokes Bedrock and costs money; the handler then re-verifies the token independently. Sign-in is Cognito Hosted UI with PKCE, no client secret in the browser</li>
+        <li><b>Designed around the permissions, not against them</b> &mdash; the execution role grants no DynamoDB scan and no deletes, so every access path is a Query and retiring a miss is a status flag; the app assumes a scoped read-only role rather than holding a deploy key</li>
+        <li><b>Spaced repetition that ranks by exam weight</b> &mdash; misses return on a 1/3/7-day ladder and retire after two consecutive correct answers, and readiness ranks the five exam domains by weight against accuracy, so a heavily weighted weak domain outranks a light one</li>
+      </ul>
+      <p class="outcome">Runs at about $0.06/month. Built and deployed during the exam prep it supports &mdash; the study tool and the certification are the same project.</p>
+      <div class="stack"><span>Amazon Cognito</span><span>API Gateway</span><span>Lambda</span><span>DynamoDB</span><span>Amazon Bedrock</span><span>Nova Lite</span><span>CloudFront</span><span>Python</span></div>
     </div>
 
     <div class="project">
