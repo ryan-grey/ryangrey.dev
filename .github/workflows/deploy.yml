@@ -70,25 +70,25 @@ jobs:
             --exclude ".claude/*" \
             --cache-control "public, max-age=3600, must-revalidate"
 
-      # Two classes need something other than that default. Note sync only writes metadata
-      # on objects it actually uploads, so this pass runs unconditionally rather than only
-      # when the file changed.
+      # Two classes need something other than that default. These re-upload from the
+      # workspace rather than doing an S3-to-S3 copy in place: a copy reads the source
+      # object, and the deploy role has PutObject but deliberately not GetObject -- it
+      # pushes the site, it has no business reading the bucket back.
       - name: Set the cache headers that differ from the default
         run: |
           # HTML must revalidate on every view, or a deploy stays invisible for an hour.
           for f in index.html ask/index.html; do
-            aws s3 cp "s3://ryangrey.dev/$f" "s3://ryangrey.dev/$f" \
-              --metadata-directive REPLACE \
+            aws s3 cp "$f" "s3://ryangrey.dev/$f" \
               --content-type "text/html" \
               --cache-control "public, max-age=0, must-revalidate" >/dev/null
-            echo "  $f  no-store-ish (max-age=0, must-revalidate)"
+            echo "  $f  max-age=0, must-revalidate"
           done
           # Card art is versioned in the filename, so a URL only ever holds one image and
-          # can be cached forever. This is why the OG card is og-card-vN.png and not
-          # og-card.png: scrapers cache by URL and never revalidate.
-          aws s3 ls s3://ryangrey.dev/ | awk '{print $4}' | grep '^og-card' | while read -r f; do
-            aws s3 cp "s3://ryangrey.dev/$f" "s3://ryangrey.dev/$f" \
-              --metadata-directive REPLACE \
+          # can be cached forever. That is why the OG card is og-card-vN.png: scrapers
+          # cache by URL and never revalidate.
+          for f in og-card*.png; do
+            [ -e "$f" ] || continue
+            aws s3 cp "$f" "s3://ryangrey.dev/$f" \
               --content-type "image/png" \
               --cache-control "public, max-age=31536000, immutable" >/dev/null
             echo "  $f  immutable"
