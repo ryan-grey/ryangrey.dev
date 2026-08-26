@@ -113,6 +113,9 @@
   .more { font-size: 15px; margin-top: 12px; }
 
   /* Diagram */
+  .shot { margin: 16px 0 4px; }
+  .shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .shot figcaption { font-size: 13.5px; color: var(--muted); margin-top: 8px; }
   .diagram { margin: 16px 0 4px; overflow-x: auto; }
   .diagram svg { display: block; min-width: 560px; width: 100%; height: auto; }
   .diagram text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
@@ -220,6 +223,11 @@
         <li><b>Least privilege</b> &mdash; it assumes a scoped read-only role on one-hour STS credentials rather than holding the deploy key, and proves which identity it resolved instead of trusting the config</li>
         <li><b>Degrades honestly</b> &mdash; a failed refresh keeps the last good value with the failure named and its age stated, and the glyph has a third state, because &ldquo;cannot reach AWS&rdquo; is not the same as healthy</li>
       </ul>
+      <figure class="shot">
+        <img src="watchtower-panel.png" width="1320" height="1160" loading="lazy" decoding="async"
+             alt="The Watchtower panel in light and dark mode, showing CloudFront request counts and error rates, the CloudWatch alarm reading OK, and month-to-date spend against the budget.">
+        <figcaption>The panel, light and dark, on live data. The $17 month is a one-time domain transfer against a deliberately tight $5 guardrail &mdash; the app is showing a real breach, not a mock-up.</figcaption>
+      </figure>
       <div class="stack"><span>Swift</span><span>SwiftUI</span><span>macOS</span><span>CloudWatch</span><span>Cost Explorer</span><span>IAM &amp; STS</span><span>AWS SigV4</span></div>
     </div>
 
