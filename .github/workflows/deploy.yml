@@ -83,15 +83,23 @@ jobs:
               --cache-control "public, max-age=0, must-revalidate" >/dev/null
             echo "  $f  max-age=0, must-revalidate"
           done
-          # Card art is versioned in the filename, so a URL only ever holds one image and
-          # can be cached forever. That is why the OG card is og-card-vN.png: scrapers
-          # cache by URL and never revalidate.
-          for f in og-card*.png; do
-            [ -e "$f" ] || continue
-            aws s3 cp "$f" "s3://ryangrey.dev/$f" \
-              --content-type "image/png" \
+          # Versioned assets. The filename changes whenever the bytes do, so a URL only
+          # ever holds one image and can be cached forever. This is the fix for a stale
+          # mark in someone's browser: new headers cannot expire a copy that was cached
+          # before those headers existed, but a new URL is never in the cache at all.
+          set_immutable() {
+            aws s3 cp "$1" "s3://ryangrey.dev/$1" \
+              --content-type "$2" \
               --cache-control "public, max-age=31536000, immutable" >/dev/null
-            echo "  $f  immutable"
+            echo "  $1  immutable"
+          }
+          for f in og-card*.png rg-avatar-v*.png; do
+            [ -e "$f" ] || continue
+            set_immutable "$f" "image/png"
+          done
+          for f in favicon-v*.ico; do
+            [ -e "$f" ] || continue
+            set_immutable "$f" "image/vnd.microsoft.icon"
           done
 
       - name: Invalidate CloudFront cache
