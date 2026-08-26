@@ -10,3 +10,6 @@ CLAUDE.md
 # Build artifact: copied from infra/aif-c01-course.json at deploy/test time.
 # One source of truth; this copy just rides along in the Lambda package.
 infra/quiz/aif-c01-course.json
+
+__pycache__/
+*.pyc
