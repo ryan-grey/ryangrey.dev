@@ -97,6 +97,10 @@
   }
   .project .meta { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
   .project p { margin-bottom: 10px; }
+  .skillgroup { padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .skillgroup:last-child { border-bottom: none; }
+  .skillgroup h3 { font-size: 15px; font-weight: 600; }
+  .skillgroup .stack { margin-top: 8px; }
   .stack { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .stack span {
     font-size: 12.5px; font-weight: 600; color: var(--muted);
@@ -168,8 +172,29 @@
         <span><b>AWS Certified Cloud Practitioner</b><em>Issued 2026 · Verify on Credly &rarr;</em></span>
       </a>
       <span class="badge"><span class="soon">AWS Certified AI Practitioner — exam scheduled Sept 2026</span></span>
+      <span class="badge">Epic Certification — Ballad Health</span>
     </div>
   </header>
+
+  <section id="skills">
+    <h2>Technical Skills</h2>
+    <div class="skillgroup">
+      <h3>Cloud (AWS)</h3>
+      <div class="stack"><span>EC2</span><span>S3</span><span>IAM &amp; STS</span><span>VPC</span><span>Lambda</span><span>API Gateway</span><span>DynamoDB</span><span>CloudFront</span><span>Route 53</span><span>SNS</span><span>SES</span><span>CloudWatch</span><span>EventBridge</span><span>Cost Explorer &amp; Budgets</span><span>Amazon Bedrock</span><span>SageMaker (fundamentals)</span><span>AWS pricing &amp; Well-Architected Framework</span></div>
+    </div>
+    <div class="skillgroup">
+      <h3>Build &amp; Languages</h3>
+      <div class="stack"><span>Swift / SwiftUI</span><span>Python</span><span>JavaScript</span><span>Bash</span><span>Git &amp; GitHub Actions CI/CD</span><span>AWS SigV4 request signing</span><span>Cost engineering (FinOps)</span></div>
+    </div>
+    <div class="skillgroup">
+      <h3>Data &amp; Reporting</h3>
+      <div class="stack"><span>Dashboard design</span><span>KPI reporting</span><span>Database analysis</span><span>Query writing</span><span>SharePoint administration</span><span>Google Apps Script automation</span></div>
+    </div>
+    <div class="skillgroup">
+      <h3>Health IT</h3>
+      <div class="stack"><span>Epic</span><span>Cerner</span><span>SMS Envision</span><span>3M Coding</span><span>Chargemaster</span><span>PayNav</span><span>Audit Logix</span><span>HIPAA / PHI compliance</span></div>
+    </div>
+  </section>
 
   <section id="projects">
     <h2>Projects</h2>
@@ -282,7 +307,30 @@
       <div class="jobhead"><span><b>Patient Access Representative</b> <span class="org">— Ballad Health</span></span><span class="dates">2009 – 2013</span></div>
       <p>Registration and insurance eligibility (Medicare, Medicaid, BCBS) for up to 100 patients daily; trained new team members across facilities during software launches.</p>
     </div>
-    <p style="margin-top:18px"><a href="ryan-grey-cv.pdf">Full CV with details and education →</a></p>
+    <div class="job">
+      <div class="jobhead"><span><b>Accounting / Customer Service</b> <span class="org">— Walmart</span></span><span class="dates">2006 – 2009</span></div>
+      <p>Reconciled and reported daily financial transactions, register audits, and chargebacks; managed high-value cash deposits.</p>
+    </div>
+    <p style="margin-top:18px"><a href="ryan-grey-cv.pdf">Full CV (PDF) →</a></p>
+  </section>
+
+  <section id="education">
+    <h2>Education &amp; Professional Development</h2>
+    <div class="job">
+      <div class="jobhead"><span><b>AWS Skill Builder</b> <span class="org">— AI Practitioner Learning Plan &amp; Exam Prep Plan (~30 hrs) · Cloud Practitioner exam track</span></span><span class="dates">2026</span></div>
+    </div>
+    <div class="job">
+      <div class="jobhead"><span><b>The Ohio State University</b> <span class="org">— Computer science coursework toward B.S. — 2 semesters completed, remote</span></span></div>
+    </div>
+    <div class="job">
+      <div class="jobhead"><span><b>Sabio Coding Bootcamp</b> <span class="org">— Full-Stack Developer program — 3 quarters completed, remote</span></span></div>
+    </div>
+    <div class="job">
+      <div class="jobhead"><span><b>East Tennessee State University</b> <span class="org">— Computer science coursework</span></span></div>
+    </div>
+    <div class="job">
+      <div class="jobhead"><span><b>Ballad Health</b> <span class="org">— Epic Certification · Medical Coding Training</span></span></div>
+    </div>
   </section>
 
   <footer>
