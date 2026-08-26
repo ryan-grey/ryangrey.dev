@@ -1,0 +1,96 @@
+{
+  "course": "AWS Certified AI Practitioner (AIF-C01)",
+  "source": "AWS Skill Builder — AI Practitioner Learning Plan. Module and lesson NAMES only, taken from Ryan's own study calendar. No Skill Builder content is reproduced here; questions are generated from these titles plus public AIF-C01 domain knowledge.",
+  "domains": [
+    { "id": "D1", "name": "Fundamentals of AI and ML", "weight": 20 },
+    { "id": "D2", "name": "Fundamentals of Generative AI", "weight": 24 },
+    { "id": "D3", "name": "Applications of Foundation Models", "weight": 28 },
+    { "id": "D4", "name": "Guidelines for Responsible AI", "weight": 14 },
+    { "id": "D5", "name": "Security, Compliance, and Governance for AI Solutions", "weight": 14 }
+  ],
+  "modules": [
+    {
+      "id": "M1", "name": "Fundamentals of ML and AI", "primaryDomain": "D1",
+      "note": "Lesson names are not in the calendar for this module. Recorded at module granularity, which is sufficient: it is already complete, so every lesson in it is inside the scope window regardless.",
+      "lessons": [{ "id": "M1-ALL", "order": 1, "name": "Fundamentals of ML and AI (whole module)" }]
+    },
+    {
+      "id": "M2", "name": "Exploring AI Use Cases and Applications", "primaryDomain": "D1",
+      "note": "Lesson names not in the calendar; module granularity, already complete.",
+      "lessons": [{ "id": "M2-ALL", "order": 2, "name": "Exploring AI Use Cases and Applications (whole module)" }]
+    },
+    {
+      "id": "M3", "name": "Responsible AI", "primaryDomain": "D4",
+      "lessons": [
+        { "id": "M3-01", "order": 3, "name": "Responsible AI through Select a Model (earlier lessons)" },
+        { "id": "M3-02", "order": 4, "name": "Responsible Considerations to Select a Model" },
+        { "id": "M3-03", "order": 5, "name": "Responsible Preparation for Datasets" },
+        { "id": "M3-04", "order": 6, "name": "Transparent and Explainable Models" },
+        { "id": "M3-05", "order": 7, "name": "Model Trade-Offs" },
+        { "id": "M3-06", "order": 8, "name": "Principles of Human-Centered Design for Explainable AI" }
+      ]
+    },
+    {
+      "id": "M4", "name": "Developing Machine Learning Solutions", "primaryDomain": "D1",
+      "lessons": [
+        { "id": "M4-01", "order": 9,  "name": "Introduction" },
+        { "id": "M4-02", "order": 10, "name": "Machine Learning Development Lifecycle" },
+        { "id": "M4-03", "order": 11, "name": "Developing ML Solutions with Amazon SageMaker AI" },
+        { "id": "M4-04", "order": 12, "name": "Sources of ML Models" },
+        { "id": "M4-05", "order": 13, "name": "Machine Learning Models Performance Evaluation" },
+        { "id": "M4-06", "order": 14, "name": "Model Deployment" },
+        { "id": "M4-07", "order": 15, "name": "Fundamental Concepts of MLOps" }
+      ]
+    },
+    {
+      "id": "M5", "name": "Developing Generative AI Solutions", "primaryDomain": "D2",
+      "lessons": [
+        { "id": "M5-01", "order": 16, "name": "Course Overview" },
+        { "id": "M5-02", "order": 17, "name": "Generative AI Application Lifecycle" },
+        { "id": "M5-03", "order": 18, "name": "Defining a Use Case" },
+        { "id": "M5-04", "order": 19, "name": "Selecting a Foundation Model" },
+        { "id": "M5-05", "order": 20, "name": "Improving the Performance of a Foundation Model" },
+        { "id": "M5-06", "order": 21, "name": "Evaluating a Foundation Model" },
+        { "id": "M5-07", "order": 22, "name": "Deploying the Application" }
+      ]
+    },
+    {
+      "id": "M6", "name": "Essentials of Prompt Engineering", "primaryDomain": "D3",
+      "lessons": [
+        { "id": "M6-01", "order": 23, "name": "Introduction" },
+        { "id": "M6-02", "order": 24, "name": "Understanding Prompts" },
+        { "id": "M6-03", "order": 25, "name": "Modifying Prompts" },
+        { "id": "M6-04", "order": 26, "name": "Prompt Engineering Techniques" },
+        { "id": "M6-05", "order": 27, "name": "Prompt Misuses and Risks" }
+      ]
+    },
+    {
+      "id": "M7", "name": "Optimizing Foundation Models", "primaryDomain": "D3",
+      "lessons": [
+        { "id": "M7-01", "order": 28, "name": "Course Overview" },
+        { "id": "M7-02", "order": 29, "name": "Business Case (Retrieval-Augmented Generation)" },
+        { "id": "M7-03", "order": 30, "name": "Retrieval-Augmented Generation" },
+        { "id": "M7-04", "order": 31, "name": "Agents" },
+        { "id": "M7-05", "order": 32, "name": "Evaluate Results" },
+        { "id": "M7-06", "order": 33, "name": "Business Case (Fine-Tuning)" },
+        { "id": "M7-07", "order": 34, "name": "Fine-Tuning" },
+        { "id": "M7-08", "order": 35, "name": "Model Evaluation" }
+      ]
+    },
+    {
+      "id": "M8", "name": "Security, Compliance, and Governance for AI Solutions", "primaryDomain": "D5",
+      "lessons": [
+        { "id": "M8-01", "order": 36, "name": "Course Overview" },
+        { "id": "M8-02", "order": 37, "name": "Strategic Guidance" },
+        { "id": "M8-03", "order": 38, "name": "Compliance Standards for AI Systems" },
+        { "id": "M8-04", "order": 39, "name": "AWS Services for Governance and Compliance" },
+        { "id": "M8-05", "order": 40, "name": "Data Governance Strategies" },
+        { "id": "M8-06", "order": 41, "name": "Approaches for Implementing Governance Strategies" },
+        { "id": "M8-07", "order": 42, "name": "Security and Privacy Considerations for AI Systems" },
+        { "id": "M8-08", "order": 43, "name": "AWS Services and Features for Securing AI Systems" },
+        { "id": "M8-09", "order": 44, "name": "Understanding Data and Model Lineage" },
+        { "id": "M8-10", "order": 45, "name": "Best Practices for Secure Data Engineering" }
+      ]
+    }
+  ]
+}
