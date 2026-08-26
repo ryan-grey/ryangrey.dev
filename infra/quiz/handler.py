@@ -122,7 +122,13 @@ def query_misses(sub):
         if start:
             kw["ExclusiveStartKey"] = start
         res = ddb.query(**kw)
-        out.extend(_plain(i) for i in res.get("Items", []))
+        for raw in res.get("Items", []):
+            item = _plain(raw)
+            # conceptId lives in the sort key, not as its own attribute. Surfacing it here
+            # means every caller gets it; reading m["conceptId"] without this raised a
+            # KeyError the first time a quiz had due warm-ups to build.
+            item["conceptId"] = item.get("sk", "")[len("MISS#"):]
+            out.append(item)
         start = res.get("LastEvaluatedKey")
         if not start:
             break
@@ -193,7 +199,7 @@ def _prompt(order, count, due):
              for l in in_scope]
     parts = ["IN SCOPE — the only lessons you may test:", "\n".join(lines)]
     if due:
-        warm = "\n".join(f'- conceptId {m["conceptId"]} (lesson {m.get("lessonId","?")}): '
+        warm = "\n".join(f'- conceptId {m.get("conceptId","?")} (lesson {m.get("lessonId","?")}): '
                          f'{m.get("concept","")} — the learner previously got this wrong: '
                          f'{m.get("rule","")}' for m in due)
         parts.append(

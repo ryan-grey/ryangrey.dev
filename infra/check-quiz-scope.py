@@ -71,6 +71,24 @@ def main():
         if leaked:
             failures.append(f"marker {order}: PROMPT LEAKED future lesson ids {leaked[:5]}")
 
+    # 2b. the warm-up path: a prompt built WITH due misses. This was missing, and the
+    #     warm-up branch shipped broken because every test built a prompt with due=[].
+    due_rows = [
+        {"sk": "MISS#clarify-vs-monitor", "conceptId": "clarify-vs-monitor",
+         "concept": "Clarify vs Model Monitor", "rule": "Clarify explains; Monitor watches.",
+         "lessonId": "M3-01", "status": "OPEN"},
+        {"sk": "MISS#no-concept-id"},           # a row missing everything optional
+    ]
+    try:
+        warm_prompt = h._prompt(6, 8, due_rows)
+        if "clarify-vs-monitor" not in warm_prompt:
+            failures.append("warm-up prompt did not include the due conceptId")
+        leaked = [l["id"] for l in lessons if l["order"] > 6 and l["id"] in warm_prompt]
+        if leaked:
+            failures.append(f"warm-up prompt leaked future lessons {leaked[:5]}")
+    except Exception as exc:                                   # noqa: BLE001
+        failures.append(f"building a prompt with due misses raised {exc!r}")
+
     # 3. the post-filter catches what a model returns anyway
     order = 4
     future = next(l for l in lessons if l["order"] == max_order)
