@@ -64,8 +64,27 @@ def main():
         print(f"  index.html now:  {live}")
         print("  Rebuild with: python3 infra/build-corpus.py")
 
-    if not (doc.get("sources") or {}).get("cv"):
+    recorded_cv = (doc.get("sources") or {}).get("cv")
+    if not recorded_cv:
         print("\nadvisory: no CV hash recorded -- corpus was built without the CV source")
+    else:
+        # The CV source lives outside the repo, so CI genuinely cannot check it and this stays
+        # advisory there. But when the file IS present -- i.e. locally, where the CV is edited --
+        # a mismatch is checkable and therefore a hard fail. Otherwise editing the resume leaves
+        # the chatbot answering from an older one while every guard still reports OK, which is
+        # exactly what happened on 2026-08-26.
+        cv_path = Path.home() / "Documents/Resumes/Ryan_Grey_Resume_2026.source.html"
+        if cv_path.exists():
+            live_cv = hashlib.sha256(cv_path.read_bytes()).hexdigest()
+            if live_cv != recorded_cv:
+                print("\nFAIL: the CV source has changed since the corpus was built.")
+                print(f"  corpus recorded: {recorded_cv}")
+                print(f"  CV source now:   {live_cv}")
+                print("\nRebuild with: python3 infra/build-corpus.py")
+                print("Then redeploy:  infra/deploy-chatbot.sh")
+                return 1
+        else:
+            print("advisory: CV source not present here -- cannot verify it (expected in CI)")
 
     if failed:
         print("\nThe chatbot would answer from stale content. Not shipping it.")
