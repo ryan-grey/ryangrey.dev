@@ -213,7 +213,7 @@ frame-ancestors 'none'; upgrade-insecure-requests
 
 Two judgement calls are worth stating outright:
 
-- **`img-src` must include `data:`.** The favicon is an inline `data:image/svg+xml` URI. Omit `data:` and the tab icon silently disappears while every other check still passes.
+- **`img-src` keeps `data:`, though nothing needs it any more.** It was there for a favicon served as an inline `data:image/svg+xml` URI; that became a real `favicon.ico` on 2026-08-26 and no page asset uses a `data:` URI today. The directive is left as-is because narrowing it means redeploying the CloudFront function for no security gain.
 - **`style-src 'unsafe-inline'` is a deliberate compromise.** The CSS is one inline `<style>` block; the strict alternative is a `sha256-` hash of its exact contents, which goes stale on *every* CSS edit and fails silently to an unstyled page. With no JavaScript on the page, there is nothing to weaponise CSS injection against, so the hash buys very little for real operational risk.
 
 **The `/ask` page gets its own policy.** The chatbot needs a script and a `fetch` back to `/api/ask`, which `script-src 'none'; connect-src 'none'` forbids outright. Rather than loosen the site-wide policy to accommodate one page, the function branches on the request URI and serves a second, separately scoped policy to paths under `/ask` — `script-src 'self'; connect-src 'self'`, everything else unchanged. The main page keeps `script-src 'none'` byte for byte. A narrow second policy, not a weakened first one.
@@ -402,7 +402,11 @@ The monthly email is a heartbeat: its arrival confirms the chain works. Its **ab
 index.html                          the entire site — markup, CSS, and SVG diagram
 ask/index.html                      the "Ask about Ryan" chat page
 ask/app.js                          its client (the site's only JavaScript)
-ryan-grey.jpg                       profile photo (EXIF stripped)
+rg-avatar.png                       brand mark, hero avatar (replaced the headshot)
+favicon.ico                         brand mark, 16/32/48 in one file
+apple-touch-icon.png                brand mark, 180px
+og-card-v3.png                      1200x630 social preview (og:image)
+watchtower-panel.png                Cloud Watchtower screenshot on its project card
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
 ryan-grey-cv.pdf                    CV linked from the page
 .github/workflows/deploy.yml        keyless CI/CD pipeline
