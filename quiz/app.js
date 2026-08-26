@@ -157,6 +157,80 @@
     box.appendChild(note);
   }
 
+  function renderReadiness() {
+    var box = $("readiness");
+    box.textContent = "";
+    var totals = {};
+    state.course.domains.forEach(function (d) {
+      totals[d.id] = { id: d.id, name: d.name, weight: d.weight, correct: 0, total: 0 };
+    });
+    state.sessions.forEach(function (s) {
+      Object.keys(s.byDomain || {}).forEach(function (id) {
+        if (!totals[id]) { return; }
+        totals[id].correct += s.byDomain[id].correct || 0;
+        totals[id].total += s.byDomain[id].total || 0;
+      });
+    });
+    var rows = Object.keys(totals).map(function (k) { return totals[k]; });
+    var answeredAny = rows.some(function (r) { return r.total > 0; });
+    if (!answeredAny) {
+      box.className = "card muted";
+      box.textContent = "No per-domain data yet. Finish a quiz and this fills in.";
+      return;
+    }
+    box.className = "card";
+
+    // Study-next ranking: exam weight times how far short of target you are. A heavy
+    // domain at 70% needs the hour more than a light domain at 60%.
+    rows.sort(function (a, b) {
+      var ga = a.total ? (1 - a.correct / a.total) * a.weight : a.weight;
+      var gb = b.total ? (1 - b.correct / b.total) * b.weight : b.weight;
+      return gb - ga;
+    });
+
+    rows.forEach(function (r) {
+      var pct = r.total ? Math.round((r.correct / r.total) * 100) : null;
+      var cls = pct === null ? "" : (pct >= 80 ? "strong" : (pct >= 65 ? "okish" : "weak"));
+      var row = document.createElement("div");
+      row.className = "dom";
+
+      var name = document.createElement("div");
+      name.className = "name";
+      name.textContent = r.id + " · " + r.name;
+
+      var num = document.createElement("div");
+      num.className = "num " + cls;
+      num.textContent = pct === null ? "no data" : pct + "%";
+
+      var track = document.createElement("div");
+      track.className = "track";
+      var fill = document.createElement("i");
+      fill.style.width = (pct === null ? 0 : pct) + "%";
+      fill.style.background = pct === null ? "var(--line)"
+        : (pct >= 80 ? "var(--good)" : (pct >= 65 ? "var(--warn)" : "var(--bad)"));
+      track.appendChild(fill);
+
+      var meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = r.weight + "% of the exam · "
+        + (r.total ? r.correct + "/" + r.total + " correct" : "not yet quizzed")
+        + (r.total > 0 && r.total < 5 ? " · too few to trust yet" : "");
+
+      row.appendChild(name); row.appendChild(num);
+      row.appendChild(track); row.appendChild(meta);
+      box.appendChild(row);
+    });
+
+    var top = rows.filter(function (r) { return r.total >= 5; })[0];
+    var note = document.createElement("p");
+    note.className = "muted";
+    note.style.margin = "12px 0 0";
+    note.textContent = top
+      ? "Study next: " + top.id + " — heaviest weight-adjusted gap."
+      : "Ranked by exam weight against accuracy. Answer more to firm this up.";
+    box.appendChild(note);
+  }
+
   function renderSessions() {
     var box = $("sessions");
     box.textContent = "";
@@ -205,7 +279,7 @@
       b.addEventListener("click", function () {
         if (answered[q._key]) { return; }
         var correct = i === q.answerIndex;
-        answered[q._key] = correct;
+        answered[q._key] = { correct: correct, domain: q.domain || "" };
         buttons.forEach(function (other, j) {
           other.disabled = true;
           if (j === q.answerIndex) { other.className = "choice right"; }
@@ -238,7 +312,15 @@
   function maybeFinish() {
     var keys = Object.keys(answered);
     if (keys.length < currentTotal) { return; }
-    var correct = keys.filter(function (k) { return answered[k]; }).length;
+    var correct = keys.filter(function (k) { return answered[k].correct; }).length;
+    // byDomain was being posted as {}, so nothing could ever tell which domains were weak.
+    var byDomain = {};
+    keys.forEach(function (k) {
+      var d = answered[k].domain || "unknown";
+      if (!byDomain[d]) { byDomain[d] = { correct: 0, total: 0 }; }
+      byDomain[d].total += 1;
+      if (answered[k].correct) { byDomain[d].correct += 1; }
+    });
     var box = $("score");
     box.hidden = false;
     box.textContent = "";
@@ -246,7 +328,7 @@
     h.textContent = "Session complete: " + correct + "/" + currentTotal
       + " (" + Math.round((correct / currentTotal) * 100) + "%)";
     box.appendChild(h);
-    api("/session", "POST", { correct: correct, total: currentTotal, byDomain: {} })
+    api("/session", "POST", { correct: correct, total: currentTotal, byDomain: byDomain })
       .then(refresh)
       .catch(function () { /* score already shown; a failed write is not worth a scare */ });
   }
@@ -286,6 +368,7 @@
     return api("/state").then(function (data) {
       state = data;
       renderProgress();
+      renderReadiness();
       renderMisses();
       renderSessions();
     });
