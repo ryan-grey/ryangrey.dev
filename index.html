@@ -210,6 +210,20 @@
     </div>
 
     <div class="project">
+      <span class="status live">Shipped</span>
+      <h3>Cloud Watchtower &mdash; macOS Menu-Bar Monitor</h3>
+      <div class="meta"><a href="https://github.com/ryan-grey/cloud-watchtower">Source on GitHub &rarr;</a></div>
+      <p>A native menu-bar app that answers two questions at a glance: is the site healthy, and what is it costing? CloudFront traffic and error rates, CloudWatch alarm state, and month-to-date spend against the budget. The menu-bar glyph encodes health, so the panel only needs opening when something is actually wrong.</p>
+      <ul class="caps">
+        <li><b>No dependencies at all</b> &mdash; the AWS SDK for Swift is a 2.3&nbsp;GB repository, so request signing is written directly instead: AWS SigV4 in about a hundred lines of CryptoKit, covering both the Query/XML and JSON wire protocols</li>
+        <li><b>Cost is a design constraint</b> &mdash; Cost Explorer bills per request, so it never runs on a timer and sits behind a button labelled with its own price; batching every metric into a single call brings the monitor to ~$0.12/month against roughly $8.50 for the obvious design</li>
+        <li><b>Least privilege</b> &mdash; it assumes a scoped read-only role on one-hour STS credentials rather than holding the deploy key, and proves which identity it resolved instead of trusting the config</li>
+        <li><b>Degrades honestly</b> &mdash; a failed refresh keeps the last good value with the failure named and its age stated, and the glyph has a third state, because &ldquo;cannot reach AWS&rdquo; is not the same as healthy</li>
+      </ul>
+      <div class="stack"><span>Swift</span><span>SwiftUI</span><span>macOS</span><span>CloudWatch</span><span>Cost Explorer</span><span>IAM &amp; STS</span><span>AWS SigV4</span></div>
+    </div>
+
+    <div class="project">
       <span class="status live">Live</span>
       <h3>Retrieval-Augmented Chatbot on Amazon Bedrock</h3>
       <div class="meta"><a href="/ask/">Ask the assistant a question &rarr;</a></div>
