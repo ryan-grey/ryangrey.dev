@@ -51,6 +51,11 @@ jobs:
       - name: Confirm assumed identity
         run: aws sts get-caller-identity
 
+      # Every object gets a Cache-Control header. Before 2026-08-26 none did, so browsers
+      # fell back to heuristic caching and kept serving a stale avatar and favicon after a
+      # brand change -- a CloudFront invalidation does not help, because the stale copy is
+      # in the visitor's browser, not the CDN. One hour bounds that, and revalidation after
+      # it is a cheap 304.
       - name: Sync site to S3
         run: |
           aws s3 sync . s3://ryangrey.dev \
@@ -62,7 +67,32 @@ jobs:
             --exclude "README.md" \
             --exclude ".DS_Store" \
             --exclude "CLAUDE.md" \
-            --exclude ".claude/*"
+            --exclude ".claude/*" \
+            --cache-control "public, max-age=3600, must-revalidate"
+
+      # Two classes need something other than that default. Note sync only writes metadata
+      # on objects it actually uploads, so this pass runs unconditionally rather than only
+      # when the file changed.
+      - name: Set the cache headers that differ from the default
+        run: |
+          # HTML must revalidate on every view, or a deploy stays invisible for an hour.
+          for f in index.html ask/index.html; do
+            aws s3 cp "s3://ryangrey.dev/$f" "s3://ryangrey.dev/$f" \
+              --metadata-directive REPLACE \
+              --content-type "text/html" \
+              --cache-control "public, max-age=0, must-revalidate" >/dev/null
+            echo "  $f  no-store-ish (max-age=0, must-revalidate)"
+          done
+          # Card art is versioned in the filename, so a URL only ever holds one image and
+          # can be cached forever. This is why the OG card is og-card-vN.png and not
+          # og-card.png: scrapers cache by URL and never revalidate.
+          aws s3 ls s3://ryangrey.dev/ | awk '{print $4}' | grep '^og-card' | while read -r f; do
+            aws s3 cp "s3://ryangrey.dev/$f" "s3://ryangrey.dev/$f" \
+              --metadata-directive REPLACE \
+              --content-type "image/png" \
+              --cache-control "public, max-age=31536000, immutable" >/dev/null
+            echo "  $f  immutable"
+          done
 
       - name: Invalidate CloudFront cache
         run: |
