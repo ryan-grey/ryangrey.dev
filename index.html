@@ -238,6 +238,21 @@
     </div>
 
     <div class="project">
+      <span class="status dev">TestFlight</span>
+      <h3>GreyScale &mdash; Family Weigh-In on iOS</h3>
+      <div class="meta">Private iOS app and serverless backend &middot; no public listing and no public repo, by design</div>
+      <p>A shared spreadsheet had been scoring a four-person family&rsquo;s weekly weigh-ins since May, and its computed columns had already gone stale. GreyScale replaces it: a SwiftUI app on everyone&rsquo;s phone over a serverless backend, designed, built and shipped solo. Single-table DynamoDB reached only by Query on the partition key &mdash; there is no Scan in the code, and none granted in the IAM policy either.</p>
+      <ul class="caps">
+        <li><b>Nothing derived is ever stored</b> &mdash; the table holds a weight and a date; every weekly loss, running total and pass/fail verdict is recomputed from raw weights. A later &ldquo;rewind to any past week&rdquo; feature then cost almost nothing to build: showing week&nbsp;5 is scoring the same rows with the later ones removed, so there is no historical snapshot that can drift out of step</li>
+        <li><b>Every write is pinned to its author</b> &mdash; no endpoint accepts a member id, not the weigh-in, the photo or the profile badges. The row key always derives from the verified token&rsquo;s username claim, so tampering has nothing to aim at</li>
+        <li><b>Rejected before the code runs</b> &mdash; an API Gateway JWT authorizer turns away unauthenticated calls, and the handler then re-checks <b style="font-weight:600">token_use</b> independently, because ID and access tokens are signed by the same pool and only one of them is meant to be a bearer credential. Sign-in is Authorization Code with PKCE on a public client holding no secret</li>
+        <li><b>Checked against what it replaced, not against itself</b> &mdash; the test suite asserts the app reproduces every weekly and running total the original spreadsheet computed across 14 weeks and three people, with each verdict restated independently. It runs without Xcode or a simulator, so the part most worth being right about is verifiable before the project will even open</li>
+      </ul>
+      <p class="outcome">Delivered on a split toolchain. macOS&nbsp;27 refused to launch the release Xcode at all, so archive, code signing and export ran headlessly through <b style="font-weight:600">xcodebuild</b>, with a second Xcode installed alongside solely for account setup and upload &mdash; builds stayed on the release toolchain because App Store Connect rejects binaries built with beta tooling.</p>
+      <div class="stack"><span>Swift</span><span>SwiftUI</span><span>Swift Charts</span><span>iOS</span><span>Amazon Cognito</span><span>PKCE</span><span>API Gateway</span><span>Lambda</span><span>DynamoDB</span><span>TestFlight</span></div>
+    </div>
+
+    <div class="project">
       <span class="status live">Shipped</span>
       <h3>Cloud Watchtower &mdash; macOS Menu-Bar Monitor</h3>
       <div class="meta"><a href="https://github.com/ryan-grey/cloud-watchtower">Source on GitHub &rarr;</a></div>

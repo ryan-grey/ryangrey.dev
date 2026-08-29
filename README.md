@@ -22,10 +22,11 @@ Total page weight, everything included:
 
 | Asset | Size |
 | --- | --- |
-| `index.html` (markup + inline CSS + inline SVG) | 17.7 KB |
-| Profile photo (JPEG, EXIF stripped) | 29.9 KB |
-| AWS certification badge (PNG) | 44.9 KB |
-| **Total** | **~93 KB** |
+| `index.html` (markup + inline CSS + inline SVG) | 27.3 KB |
+| Profile photo (`rg-avatar-v2.png`) | 75.5 KB |
+| AWS certification badge (PNG) | 43.8 KB |
+| Watchtower screenshot (PNG, lazy-loaded) | 74.9 KB |
+| **Total** | **~222 KB** |
 
 The `/ask` page is a separate 4.6 KB document plus 2.0 KB of JavaScript, loaded only if a visitor goes there.
 
