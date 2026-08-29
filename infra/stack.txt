@@ -1,19 +1,32 @@
-# Stack chips for the "This Website" project card in index.html.
+# Stack chips for the cards describing THIS SITE's own infrastructure in
+# index.html: "This Website" (how it is served) and "Delivery & Monitoring
+# Pipeline" (how it ships and how it alarms).
 #
-# The deploy workflow fails if this list and the card's chip row disagree
-# in either direction. Adding a service here without adding the chip, or
-# adding a chip without listing it here, both stop the deploy.
+# The deploy workflow fails if this list and those chip rows disagree in either
+# direction. Adding a service here without adding the chip, or adding a chip
+# without listing it here, both stop the deploy.
 #
-# One token per line. Must match the chip text exactly. Order here is the
-# order they appear on the card. Blank lines and # comments are ignored.
+# It spans two cards because the pipeline was split out of "This Website" on
+# 2026-08-29 to mirror the CV. The guard checks the UNION: which card a chip sits
+# on is presentation, but the set of services this site actually runs on is the
+# thing worth guarding.
+#
+# One token per line. Must match the chip text exactly. Blank lines and
+# # comments are ignored.
 
+# --- served by ---
 S3
 CloudFront
 Route 53
 ACM
 DNSSEC
-GitHub OIDC
+
+# --- shipped and watched by ---
+GitHub Actions
+IAM OIDC
 CloudFront Functions
+CloudWatch
+SNS
 Lambda
 SES
 EventBridge

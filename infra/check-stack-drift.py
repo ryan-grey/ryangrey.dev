@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-Fails if infra/stack.txt and the "This Website" chip row in index.html
-disagree, in either direction.
+Fails if infra/stack.txt and the chip rows describing this site's own
+infrastructure in index.html disagree, in either direction.
+
+Two cards carry that now -- "This Website" for how the site is served and
+"Delivery & Monitoring Pipeline" for how it ships and alarms -- so the check
+is against the union of their chip rows. Which card a chip sits on is a
+presentation choice; the set of services the site actually runs on is the
+thing worth a tripwire.
 
 The site has no build step, so the chip row is hand-written. It describes
 the same system as the CV and the README, and it drifted once already --
@@ -21,7 +27,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CARD_HEADING = "<h3>This Website</h3>"
+CARD_HEADINGS = ["<h3>This Website</h3>",
+                 "<h3>Delivery &amp; Monitoring Pipeline</h3>"]
 
 
 def manifest_tokens(path):
@@ -34,16 +41,27 @@ def manifest_tokens(path):
 
 
 def card_chips(html):
-    """Chips from the project card containing CARD_HEADING, not just the
-    first .stack on the page -- other cards have their own chip rows."""
+    """Chips from every card describing this site's own stack, in page order.
+
+    Scoped to those cards rather than to the first .stack on the page -- every
+    other project card has its own chip row and none of them are this site.
+    """
     blocks = html.split('<div class="project">')
-    for block in blocks:
-        if CARD_HEADING in block:
-            m = re.search(r'<div class="stack">(.*?)</div>', block, re.S)
-            if not m:
-                sys.exit('FAIL: found the "This Website" card but no chip row in it')
-            return re.findall(r"<span>([^<]*)</span>", m.group(1))
-    sys.exit(f"FAIL: no project card containing {CARD_HEADING!r}")
+    chips, seen = [], set()
+    for heading in CARD_HEADINGS:
+        for block in blocks:
+            if heading in block:
+                m = re.search(r'<div class="stack">(.*?)</div>', block, re.S)
+                if not m:
+                    sys.exit(f"FAIL: found the {heading!r} card but no chip row in it")
+                for chip in re.findall(r"<span>([^<]*)</span>", m.group(1)):
+                    if chip not in seen:
+                        seen.add(chip)
+                        chips.append(chip)
+                break
+        else:
+            sys.exit(f"FAIL: no project card containing {heading!r}")
+    return chips
 
 
 def main():
@@ -60,21 +78,21 @@ def main():
     failed = False
     if missing_from_page:
         failed = True
-        print("\nFAIL: in infra/stack.txt but not in the chip row:")
+        print("\nFAIL: in infra/stack.txt but not in any chip row:")
         for t in missing_from_page:
             print(f"  - {t}")
     if missing_from_manifest:
         failed = True
-        print("\nFAIL: in the chip row but not in infra/stack.txt:")
+        print("\nFAIL: in a chip row but not in infra/stack.txt:")
         for t in missing_from_manifest:
             print(f"  - {t}")
 
     if failed:
-        print("\nThe card and the manifest disagree. Update whichever is wrong;")
+        print("\nThe cards and the manifest disagree. Update whichever is wrong;")
         print("the deploy will not ship a stale chip row.")
         return 1
 
-    print("OK: chip row matches the manifest exactly")
+    print("OK: chip rows match the manifest exactly")
 
     # Advisory only -- prose uses different word forms than chip labels, so a
     # hard check here would fail on wording rather than on real drift.
