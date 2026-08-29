@@ -180,11 +180,11 @@
     <h2>Technical Skills</h2>
     <div class="skillgroup">
       <h3>Cloud (AWS)</h3>
-      <div class="stack"><span>EC2</span><span>S3</span><span>IAM &amp; STS</span><span>Cognito</span><span>VPC</span><span>Lambda</span><span>API Gateway</span><span>DynamoDB</span><span>CloudFront</span><span>Route 53</span><span>SNS</span><span>SES</span><span>CloudWatch</span><span>EventBridge</span><span>Cost Explorer &amp; Budgets</span><span>Amazon Bedrock</span><span>SageMaker (fundamentals)</span><span>AWS pricing &amp; Well-Architected Framework</span></div>
+      <div class="stack"><span>EC2</span><span>S3</span><span>IAM &amp; STS</span><span>Cognito</span><span>VPC</span><span>Lambda</span><span>API Gateway</span><span>DynamoDB</span><span>CloudFront</span><span>Route 53</span><span>SNS</span><span>SES</span><span>CloudWatch</span><span>EventBridge</span><span>SSM Parameter Store</span><span>KMS</span><span>Cost Explorer &amp; Budgets</span><span>Amazon Bedrock</span><span>SageMaker (fundamentals)</span><span>AWS pricing &amp; Well-Architected Framework</span></div>
     </div>
     <div class="skillgroup">
       <h3>Build &amp; Languages</h3>
-      <div class="stack"><span>Swift / SwiftUI</span><span>Python</span><span>JavaScript</span><span>Bash</span><span>Git &amp; GitHub Actions CI/CD</span><span>AWS SigV4 request signing</span><span>Cost engineering (FinOps)</span></div>
+      <div class="stack"><span>Swift / SwiftUI</span><span>Python</span><span>JavaScript</span><span>Bash</span><span>Git &amp; GitHub Actions CI/CD</span><span>AWS SigV4 request signing</span><span>Ed25519 signature verification</span><span>Cost engineering (FinOps)</span></div>
     </div>
     <div class="skillgroup">
       <h3>Data &amp; Reporting</h3>
@@ -234,7 +234,22 @@
           </g>
         </svg>
       </div>
-      <div class="stack"><span>S3</span><span>CloudFront</span><span>Route 53</span><span>ACM</span><span>DNSSEC</span><span>GitHub OIDC</span><span>CloudFront Functions</span><span>Lambda</span><span>SES</span><span>EventBridge</span></div>
+      <div class="stack"><span>S3</span><span>CloudFront</span><span>Route 53</span><span>ACM</span><span>DNSSEC</span></div>
+    </div>
+
+    <div class="project">
+      <span class="status live">Live</span>
+      <h3>Delivery &amp; Monitoring Pipeline</h3>
+      <div class="meta">How this site ships and how it tells on itself when it breaks.</div>
+      <p>Push-to-main deploys assume a least-privilege IAM role through OIDC federation with zero stored AWS keys, then verify the live page byte-matches the commit. GitHub&rsquo;s undocumented immutable-ID subject claims were diagnosed by decoding the runner&rsquo;s own JWT.</p>
+      <ul class="caps">
+        <li><b>Guards run before credentials</b> &mdash; three drift checks (stack manifest, corpus hash, page-asset resolution) block a deploy before any AWS credential is ever assumed</li>
+        <li><b>Security headers at the edge</b> &mdash; CloudFront Functions inject a path-branched CSP: <b style="font-weight:600">script-src 'none'</b> on the main page, which carries no JavaScript at all, and a separate narrow policy for the chatbot route</li>
+        <li><b>Mail that actually arrives</b> &mdash; a CloudFront 5xx alarm routed through Lambda to SES, signing DKIM as ryangrey.dev via Route 53, so DMARC passes on DKIM alignment where SPF cannot align; built after tracing silent drops to a provider accepting mail and discarding it</li>
+        <li><b>Monitoring that tests itself</b> &mdash; an EventBridge Scheduler heartbeat force-fires that alarm monthly through a path sharing no failure modes with the pipeline it tests, behind an AWS Budgets guardrail</li>
+      </ul>
+      <p class="more"><a href="https://github.com/ryan-grey/ryangrey.dev">Full write-ups and infrastructure code on GitHub &rarr;</a></p>
+      <div class="stack"><span>GitHub Actions</span><span>IAM OIDC</span><span>CloudFront Functions</span><span>CloudWatch</span><span>SNS</span><span>Lambda</span><span>SES</span><span>EventBridge</span></div>
     </div>
 
     <div class="project">
@@ -301,12 +316,17 @@
     </div>
 
     <div class="project">
-      <span class="status live">Shipped</span>
-      <h3>Gmail &amp; Drive Automation Suite</h3>
-      <div class="meta"><a href="https://github.com/ryan-grey/gmail-drive-automation">github.com/ryan-grey/gmail-drive-automation</a></div>
-      <p>Google Apps Script suite that classifies, labels, and archives a 15+-year mailbox by year, plus rule-based cloud file organization. Engineered around Apps Script execution-time limits and the long tail of edge-case messages that break naive classifiers.</p>
-      <p class="outcome">Chunked, resumable runs bring the backlog under the six-minute execution ceiling that defeated the first version; permanent filters then classify new mail on arrival, so the structure holds without further passes.</p>
-      <div class="stack"><span>Google Apps Script</span><span>Gmail API</span><span>Drive API</span><span>JavaScript</span></div>
+      <span class="status live">Live</span>
+      <h3>greyBot &mdash; Raid Progress for Discord</h3>
+      <div class="meta"><a href="https://github.com/ryan-grey/greybot">github.com/ryan-grey/greybot</a></div>
+      <p>Serverless Discord bot that announces a raid team&rsquo;s first kill of each boss, reconciling three third-party APIs under a points-budgeted rate limit &mdash; one that charges by query complexity rather than by request. No gateway connection: it announces and answers a slash command, so it is a scheduled function and an HTTPS endpoint, nothing kept alive.</p>
+      <ul class="caps">
+        <li><b>Exactly-once delivery</b> &mdash; enforced by a DynamoDB conditional write rather than read-then-write: the write that records a kill <i>is</i> the permission to post it, so two overlapping invocations cannot both announce into a live channel</li>
+        <li><b>A fallback removed on purpose</b> &mdash; raid resolution used to always return an answer, which turned unknown input into a confident wrong one and would have fired a false completion announcement; it now declines to answer and says so in the logs</li>
+        <li><b>Fail-closed request verification</b> &mdash; Ed25519 over the raw body bytes on the interactions endpoint, tested against the invalid-signature probes Discord uses to police endpoints, because answering one of those with a 200 costs you the endpoint</li>
+      </ul>
+      <p class="outcome">A 174-check suite runs with no AWS, no network and no credentials, and gates every deploy. Runs at about $0.02/month on ARM Lambda with a single dependency.</p>
+      <div class="stack"><span>Lambda</span><span>EventBridge</span><span>DynamoDB</span><span>API Gateway</span><span>SSM &amp; KMS</span><span>Python</span></div>
     </div>
 
   </section>
