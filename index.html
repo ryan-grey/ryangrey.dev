@@ -317,15 +317,17 @@
 
     <div class="project">
       <span class="status live">Live</span>
-      <h3>greyBot &mdash; Raid Progress for Discord</h3>
+      <h3>greyBot &mdash; Raid Progress &amp; Recaps for Discord</h3>
       <div class="meta"><a href="https://github.com/ryan-grey/greybot">github.com/ryan-grey/greybot</a></div>
-      <p>Serverless Discord bot that announces a raid team&rsquo;s first kill of each boss, reconciling three third-party APIs under a points-budgeted rate limit &mdash; one that charges by query complexity rather than by request. No gateway connection: it announces and answers a slash command, so it is a scheduled function and an HTTPS endpoint, nothing kept alive.</p>
+      <p>Serverless Discord bot that announces a raid guild&rsquo;s first kill of each boss, and a post-raid recap of how the night went. It reconciles three third-party APIs under a points-budgeted rate limit &mdash; one that charges by query complexity rather than by request &mdash; and both features share one function and one budget, the recap standing down at a higher reserve so the announcer never loses its headroom to it.</p>
       <ul class="caps">
-        <li><b>Exactly-once delivery</b> &mdash; enforced by a DynamoDB conditional write rather than read-then-write: the write that records a kill <i>is</i> the permission to post it, so two overlapping invocations cannot both announce into a live channel</li>
-        <li><b>A fallback removed on purpose</b> &mdash; raid resolution used to always return an answer, which turned unknown input into a confident wrong one and would have fired a false completion announcement; it now declines to answer and says so in the logs</li>
+        <li><b>Exactly-once delivery</b> &mdash; enforced by a DynamoDB conditional write rather than read-then-write: the write that records a kill <i>is</i> the permission to post it, so two overlapping invocations cannot both announce into a live channel. A recap claims its night the same way, keyed on the date the raid started, so one running past midnight is still one night</li>
+        <li><b>Two raid teams, one log source</b> &mdash; no API field separates them, so team identity is <i>derived</i> from who recurs across each tier&rsquo;s first kills rather than from a roster someone has to keep current. Two signals with a deliberate margin rather than a majority, because people legitimately raid on both teams; when they disagree it posts nothing rather than guess, since the card names individuals. Designed for that case rather than proven against it &mdash; so far it has only run where progression evidence alone was decisive</li>
+        <li><b>Parsers built from captured responses, not from the spec</b> &mdash; three API fields return an untyped JSON scalar with undocumented internals, so a schema introspection first established what the API really accepts, and the parsers were written against a real captured response. That surfaced six defects the documentation would have hidden: among them a table that silently truncates at 200 rows, and identifiers scoped per-report rather than globally</li>
+        <li><b>A preview that provably writes nothing</b> &mdash; renders a real card without posting or persisting, so it cannot consume the idempotency claim it exists to demonstrate. Two of those six defects were reachable only through it, and were caught before anything reached a live channel</li>
         <li><b>Fail-closed request verification</b> &mdash; Ed25519 over the raw body bytes on the interactions endpoint, tested against the invalid-signature probes Discord uses to police endpoints, because answering one of those with a 200 costs you the endpoint</li>
       </ul>
-      <p class="outcome">A 174-check suite runs with no AWS, no network and no credentials, and gates every deploy. Runs at about $0.02/month on ARM Lambda with a single dependency.</p>
+      <p class="outcome">A 291-check suite runs with no AWS, no network and no credentials, and gates every deploy. Runs at about $0.02/month on ARM Lambda with a single dependency.</p>
       <div class="stack"><span>Lambda</span><span>EventBridge</span><span>DynamoDB</span><span>API Gateway</span><span>SSM &amp; KMS</span><span>Python</span></div>
     </div>
 
@@ -365,9 +367,6 @@
     </div>
     <div class="job">
       <div class="jobhead"><span><b>East Tennessee State University</b> <span class="org">— Computer science coursework</span></span></div>
-    </div>
-    <div class="job">
-      <div class="jobhead"><span><b>Ballad Health</b> <span class="org">— Epic Certification · Medical Coding Training</span></span></div>
     </div>
   </section>
 
