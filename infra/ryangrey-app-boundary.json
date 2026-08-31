@@ -17,6 +17,8 @@
         "ssm:GetParameter",
         "ssm:GetParameters",
         "ssm:GetParametersByPath",
+        "sns:Publish",
+        "lambda:InvokeFunction",
         "cloudwatch:PutMetricData",
         "kms:Decrypt",
         "kms:GenerateDataKey"
