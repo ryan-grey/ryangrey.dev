@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>greyBot — Terms of Service</title>
+<meta name="description" content="Terms of service for the greyBot Discord app: what it does, what it does not promise, and how to stop using it.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #fafaf8; --ink: #1c1e21; --muted: #5c6470; --line: #e3e1dc;
+    --accent: #1d5fa0; --accent-ink: #174a7e; --card: #ffffff; --chip: #eef2f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --ink: #e8e6e3; --muted: #9aa3af; --line: #262b33;
+      --accent: #6aa8e0; --accent-ink: #8dbceb; --card: #191d24; --chip: #212832;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 22px 80px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .kicker { font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 38px; line-height: 1.15; margin: 6px 0 10px; letter-spacing: -0.5px; }
+  h2 { font-size: 21px; margin: 34px 0 10px; letter-spacing: -0.2px; }
+  p, ul { margin-bottom: 14px; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .lede { color: var(--muted); max-width: 62ch; }
+  .updated { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin: 18px 0;
+  }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  code {
+    background: var(--chip); border-radius: 4px; padding: 1px 6px;
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  footer {
+    margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line);
+    font-size: 15px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">greyBot</p>
+  <h1>Terms of Service</h1>
+  <p class="updated">Last updated 31 August 2026</p>
+
+  <p class="lede" style="margin-top:16px">
+    These terms cover the greyBot Discord app, operated by Ryan Grey. Adding greyBot to a
+    Discord server, or using its commands, means accepting them.
+  </p>
+
+  <h2>What greyBot does</h2>
+  <p>
+    greyBot announces a World of Warcraft guild's <em>first</em> Heroic kill of each raid
+    boss, announces Ahead of the Curve when a tier is cleared, posts an optional summary of
+    a raid night, and answers a <code>/progress</code> command with the guild's current
+    standing. It derives all of this from public raid logs and public guild profiles.
+  </p>
+
+  <h2>It is free, and provided as is</h2>
+  <div class="card">
+    <p>
+      greyBot costs nothing and carries no warranty. It is a personal project run on a
+      small budget, not a commercial service. It may be unavailable, may miss an
+      announcement, may announce something late, and may be discontinued at any time
+      without notice. To the extent the law allows, the operator accepts no liability for
+      any loss arising from its use or unavailability.
+    </p>
+  </div>
+
+  <h2>What it depends on</h2>
+  <p>
+    greyBot reads from Warcraft Logs, Raider.IO and Blizzard's public game data API. If any
+    of those is unavailable, changes, or stops permitting this use, greyBot may stop
+    working, in whole or in part. Guild data that is private to those services is invisible
+    to greyBot, and it cannot announce what it cannot see.
+  </p>
+
+  <h2>Acceptable use</h2>
+  <ul>
+    <li>Add greyBot only to servers you are authorised to manage.</li>
+    <li>Do not attempt to disrupt it, overload it, or use it to send unsolicited messages.</li>
+    <li>Do not use it in any way that breaks the
+      <a href="https://discord.com/terms" rel="noopener">Discord Terms of Service</a> or
+      <a href="https://discord.com/guidelines" rel="noopener">Community Guidelines</a>,
+      which apply alongside these terms.</li>
+  </ul>
+
+  <h2>Accuracy</h2>
+  <p>
+    greyBot reports what its sources report. Raid logs can be incomplete, tagged wrongly,
+    or filed late, and progress data can lag behind a kill by hours. Announcements are
+    best-effort statements about public data, not authoritative records, and they should
+    not be treated as proof of anything.
+  </p>
+
+  <h2>Stopping</h2>
+  <p>
+    Remove greyBot from a server at any time through Server Settings &rarr; Integrations,
+    or by deleting the webhook it posts through. No notice is needed and nothing is owed.
+    To have a guild's stored data deleted as well, see the
+    <a href="/greybot-privacy.html">Privacy Policy</a>.
+  </p>
+
+  <h2>Data</h2>
+  <p>
+    What greyBot stores, and what it deliberately does not, is set out in full in the
+    <a href="/greybot-privacy.html">Privacy Policy</a>. In short: no Discord personal data,
+    and World of Warcraft character names taken from logs that are already public.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    These terms may change. The date at the top says when they last did. Continuing to use
+    greyBot after a change means accepting the revised terms.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    <a href="mailto:rgrey.web@gmail.com">rgrey.web@gmail.com</a>.
+  </p>
+
+  <footer>
+    <a href="/">ryangrey.dev</a> &middot;
+    <a href="/greybot-privacy.html">greyBot Privacy Policy</a>
+  </footer>
+</main>
+</body>
+</html>
