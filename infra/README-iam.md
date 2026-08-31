@@ -104,6 +104,28 @@ should be done only after checking the boundary covers what they currently do �
 attaching a boundary that is missing an action breaks a live app the same way a
 missing grant does.
 
+**`ryangrey-greybot-role` was brought under management that way** on 2026-08-31,
+by `bootstrap-greybot-iam.sh`, so greyBot policy changes stop needing admin:
+
+1. `ryangrey-app-boundary` gained `sns:Publish` and `lambda:InvokeFunction` —
+   both already used by greybot (health alerts, and the `/progress` self-invoke),
+   and a boundary is a ceiling, so nothing gains a permission from this.
+2. The boundary was attached to the role, after checking every action in
+   `greybot-runtime` falls inside it. The script does that check and refuses to
+   attach if anything falls outside, then invokes the live function to prove it.
+3. `ManageGreybotRolePolicyOnly` allows `iam:PutRolePolicy` and
+   `iam:DeleteRolePolicy` on **that one role ARN** and nothing else.
+
+Step 2 is what makes step 3 safe, and the order is not optional. Without the
+boundary this would be a clean path to admin: the infra role already holds
+`lambda:*` and `iam:PassRole` to Lambda, so it could write `Action: "*"` onto
+greybot's role and run anything as it. With the boundary attached, everything it
+can grant is capped — and it cannot remove the boundary, because
+`DenyIamEscalationOutright` already denies both boundary actions and an explicit
+Deny beats any Allow. Deliberately *not* granted: `iam:DeleteRole`,
+`iam:UpdateAssumeRolePolicy`, `iam:AttachRolePolicy`. Writing the inline policy
+is the whole job.
+
 ## Note on Cost Explorer
 
 `ce:Get*` is in the policy because breakdowns are occasionally worth running.
