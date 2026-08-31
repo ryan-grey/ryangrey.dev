@@ -54,13 +54,20 @@ fi
 
 # Reserved concurrency bounds burst rate. Defence-in-depth only: the hard
 # budget bound is the global monthly counter in DynamoDB, which the function
-# enforces per-invocation regardless of concurrency. Non-fatal if the caller
-# lacks lambda:PutFunctionConcurrency.
-if aws lambda put-function-concurrency --function-name "$FN" --region "$REGION" \
-     --reserved-concurrent-executions 3 >/dev/null 2>&1; then
+# enforces per-invocation regardless of concurrency. Non-fatal either way.
+#
+# The reason it fails is printed rather than guessed at. It used to say the
+# caller lacked lambda:PutFunctionConcurrency, which on 31 Aug 2026 sent a
+# perfectly well-permitted caller looking for a missing IAM statement: the
+# actual error was InvalidParameterValueException, because this account's total
+# concurrency limit is 10 and AWS refuses to let unreserved concurrency fall
+# below 10 - so reserving any at all is impossible here, for anyone.
+if CONC_ERR=$(aws lambda put-function-concurrency --function-name "$FN" --region "$REGION" \
+     --reserved-concurrent-executions 3 2>&1 >/dev/null); then
   echo "[+] Reserved concurrency: 3"
 else
-  echo "[!] Could not set reserved concurrency (lambda:PutFunctionConcurrency denied)."
+  echo "[!] Could not set reserved concurrency. AWS said:"
+  echo "    ${CONC_ERR##*: }"
   echo "    Budget is still bounded by the GLOBAL_MONTHLY counter in DynamoDB."
 fi
 
