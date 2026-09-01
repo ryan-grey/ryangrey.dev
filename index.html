@@ -171,7 +171,7 @@
         <img src="aws-cloud-practitioner-badge.png" width="72" height="72" decoding="async" alt="AWS Certified Cloud Practitioner badge">
         <span><b>AWS Certified Cloud Practitioner</b><em>Issued 2026 · Verify on Credly &rarr;</em></span>
       </a>
-      <span class="badge"><span class="soon">AWS Certified AI Practitioner — exam scheduled Sept 2026</span></span>
+      <span class="badge"><span class="soon">AWS Certified AI Practitioner — in progress, 2026</span></span>
       <span class="badge">Epic Certification — Ballad Health</span>
     </div>
   </header>
@@ -333,9 +333,9 @@
         <li><b>Two raid teams, one log source</b> &mdash; no API field separates them, so team identity is <i>derived</i> from who recurs across each tier&rsquo;s first kills rather than from a roster someone has to keep current. Two signals with a deliberate margin rather than a majority, because people legitimately raid on both teams; when they disagree it posts nothing rather than guess, since the card names individuals. Designed for that case rather than proven against it &mdash; so far it has only run where progression evidence alone was decisive</li>
         <li><b>Parsers built from captured responses, not from the spec</b> &mdash; three API fields return an untyped JSON scalar with undocumented internals, so a schema introspection first established what the API really accepts, and the parsers were written against a real captured response. That surfaced six defects the documentation would have hidden: among them a table that silently truncates at 200 rows, and identifiers scoped per-report rather than globally</li>
         <li><b>A preview that provably writes nothing</b> &mdash; renders a real card without posting or persisting, so it cannot consume the idempotency claim it exists to demonstrate. Two of those six defects were reachable only through it, and were caught before anything reached a live channel</li>
-        <li><b>Fail-closed request verification</b> &mdash; Ed25519 over the raw body bytes on the interactions endpoint, tested against the invalid-signature probes Discord uses to police endpoints, because answering one of those with a 200 costs you the endpoint</li>
+        <li><b>Fail-closed request verification</b> &mdash; a <b style="font-weight:600">/progress</b> slash command serves over Ed25519-verified HTTP interactions: the signature is checked over the raw body bytes, and tested against the invalid-signature probes Discord uses to police endpoints, because answering one of those with a 200 costs you the endpoint</li>
       </ul>
-      <p class="outcome">A 291-check suite runs with no AWS, no network and no credentials, and gates every deploy. Runs at about $0.02/month on ARM Lambda with a single dependency.</p>
+      <p class="outcome">A 341-check suite runs with no AWS, no network and no credentials, and gates every deploy. Runs at about $0.02/month on ARM Lambda with a single dependency.</p>
       <div class="stack"><span>Lambda</span><span>EventBridge</span><span>DynamoDB</span><span>API Gateway</span><span>SSM &amp; KMS</span><span>Python</span></div>
     </div>
 
