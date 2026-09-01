@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# The chatbot endpoint. Nothing to index and every crawl of it is a Bedrock call.
+Disallow: /api/
+
+# Cognito-gated study tool. A crawler only ever gets the sign-in redirect.
+Disallow: /quiz
+
+Sitemap: https://ryangrey.dev/sitemap.xml
