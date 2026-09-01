@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Not found — ryangrey.dev</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon-v2.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #fafaf8; --ink: #1c1e21; --muted: #5c6470; --line: #e3e1dc;
+    --accent: #1d5fa0; --accent-ink: #174a7e; --card: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --ink: #e8e6e3; --muted: #9aa3af; --line: #262b33;
+      --accent: #6aa8e0; --accent-ink: #8dbceb; --card: #191d24;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px;
+  }
+  main { max-width: 30rem; text-align: center; }
+  .avatar {
+    width: 96px; height: 96px; border-radius: 50%;
+    display: block; margin: 0 auto 24px;
+  }
+  .code {
+    font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 8px;
+  }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 12px; }
+  p { color: var(--muted); margin: 0 0 24px; }
+  .links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  a.btn {
+    display: inline-block; padding: 9px 16px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card);
+    color: var(--accent); text-decoration: none; font-weight: 600;
+    font-size: 0.94rem;
+  }
+  a.btn:hover { color: var(--accent-ink); border-color: var(--accent); }
+</style>
+</head>
+<body>
+  <main>
+    <img class="avatar" src="/rg-avatar-v2.png" width="96" height="96"
+         alt="" decoding="async">
+    <p class="code">Error 404</p>
+    <h1>That page isn&rsquo;t here.</h1>
+    <p>The link may be out of date, or the address may have a typo in it.</p>
+    <div class="links">
+      <a class="btn" href="/">Home</a>
+      <a class="btn" href="/ask/">Ask about Ryan</a>
+      <a class="btn" href="/ryan-grey-cv.pdf">CV</a>
+    </div>
+  </main>
+</body>
+</html>
