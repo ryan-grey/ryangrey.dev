@@ -267,6 +267,11 @@
         <li><b>Checked against what it replaced, not against itself</b> &mdash; the test suite asserts the app reproduces every weekly and running total the original spreadsheet computed, restates each verdict independently, and re-derives seven published weekly averages from the log it inherited. It runs without Xcode or a simulator, so the part most worth being right about is verifiable before the project will even open. Views are rendered offline to PNG and looked at &mdash; every view checked that way had a bug the render caught</li>
       </ul>
       <p class="outcome">Delivered on a split toolchain. macOS&nbsp;27 refused to launch the release Xcode at all, so archive, code signing and export ran headlessly through <b style="font-weight:600">xcodebuild</b>, with a second Xcode installed alongside solely for account setup and upload &mdash; builds stayed on the release toolchain because App Store Connect rejects binaries built with beta tooling.</p>
+      <figure class="shot">
+        <img src="greyscale-app.png" width="1872" height="1314" loading="lazy" decoding="async"
+             alt="Three screens of GreyScale: the progress screen with each member's weekly GREEN or RED verdict, a day's food against a calorie goal, and the maintenance back-solve with its window table.">
+        <figcaption>Progress, a day&rsquo;s food, and the maintenance back-solve. Everybody here is invented: the app is built with a fixture in place of its data layer, because the real screens carry the family&rsquo;s names and photographs. The avatars are the app&rsquo;s own fallback for a member who has not set a picture.</figcaption>
+      </figure>
       <div class="stack"><span>Swift</span><span>SwiftUI</span><span>Swift Charts</span><span>iOS</span><span>Vision</span><span>VisionKit</span><span>Amazon Cognito</span><span>PKCE</span><span>API Gateway</span><span>Lambda</span><span>DynamoDB</span><span>Amazon Bedrock</span><span>S3</span><span>SQS</span><span>EventBridge</span><span>TestFlight</span></div>
     </div>
 
