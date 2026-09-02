@@ -341,17 +341,18 @@
 
     <div class="project">
       <span class="status live">Live</span>
-      <h3>imessage-mcp &mdash; Apple Messages for Claude</h3>
+      <h3>imessage-mcp &mdash; Apple Messages &amp; Contacts for Claude</h3>
       <div class="meta"><a href="https://github.com/ryan-grey/imessage-mcp">Source on GitHub &rarr;</a></div>
-      <p>A local MCP server that lets the Claude desktop app search, read and send Apple Messages on the Mac it runs on. Everything stays on the machine: the message database is opened strictly read-only, sending goes through Messages.app itself, and there is no code path that touches the network.</p>
+      <p>Local MCP servers that let the Claude desktop app search, read and send Apple Messages, and manage Apple Contacts &mdash; list, dedupe, merge, and move cards between accounts &mdash; on the Mac they run on. Everything stays on the machine: the message database is opened strictly read-only, sending goes through Messages.app itself, contacts go through Apple&rsquo;s own framework, and there is no code path that touches the network.</p>
       <ul class="caps">
         <li><b>Read-only by construction</b> &mdash; chat.db is opened with SQLite&rsquo;s <b style="font-weight:600">mode=ro&amp;immutable=1</b>, which takes no locks at all, so a query can never block Messages.app; nothing under the Messages directory is ever written</li>
         <li><b>The text isn&rsquo;t where it says it is</b> &mdash; modern macOS leaves the text column NULL and stores the body only as an archived attributed string, so bodies are decoded from the typedstream blob, and a status tool reports how often that decode is actually working rather than letting search silently return empties</li>
         <li><b>Search that doesn&rsquo;t rescan history</b> &mdash; decoded text feeds a local SQLite FTS5 index rebuilt incrementally by ROWID, so the first search pays for the backlog once and every later one indexes only the delta</li>
         <li><b>Sending is deliberately harder than reading</b> &mdash; a send refuses without an explicit confirm flag, goes through Messages.app via AppleScript rather than any private API, and every attempt lands in a local audit log</li>
+        <li><b>Contacts through the front door</b> &mdash; the Contacts server drives CNContactStore via PyObjC, the same path Contacts.app uses, never the AddressBook SQLite underneath; every write is confirm-gated and logged with the full before/after card, and the iCloud container is resolved structurally rather than as &ldquo;the default account&rdquo;, so a merged or moved card can never silently land in the wrong service</li>
       </ul>
-      <p class="outcome">Tests run against a fully synthetic fixture database, because the honest way to publish a tool that reads your texts is a repository that provably contains none of them.</p>
-      <div class="stack"><span>Python</span><span>MCP</span><span>SQLite</span><span>FTS5</span><span>AppleScript</span><span>macOS</span></div>
+      <p class="outcome">Tests run against a fully synthetic fixture database and an in-memory fake of the Contacts layer, because the honest way to publish a tool that reads your texts and your address book is a repository that provably contains neither.</p>
+      <div class="stack"><span>Python</span><span>MCP</span><span>SQLite</span><span>FTS5</span><span>AppleScript</span><span>PyObjC</span><span>Contacts.framework</span><span>macOS</span></div>
     </div>
 
   </section>
