@@ -335,7 +335,7 @@
         <li><b>A preview that provably writes nothing</b> &mdash; renders a real card without posting or persisting, so it cannot consume the idempotency claim it exists to demonstrate. Two of those six defects were reachable only through it, and were caught before anything reached a live channel</li>
         <li><b>Fail-closed request verification</b> &mdash; a <b style="font-weight:600">/progress</b> slash command serves over Ed25519-verified HTTP interactions: the signature is checked over the raw body bytes, and tested against the invalid-signature probes Discord uses to police endpoints, because answering one of those with a 200 costs you the endpoint</li>
       </ul>
-      <p class="outcome">A 341-check suite runs with no AWS, no network and no credentials, and gates every deploy. Runs at about $0.02/month on ARM Lambda with a single dependency.</p>
+      <p class="outcome">A 341-check suite runs with no AWS, no network and no credentials, and gates every deploy. Runs at about $0.02/month on ARM Lambda with a single dependency. On its first live raid night it announced two first kills into the guild&rsquo;s channel &mdash; each exactly once.</p>
       <div class="stack"><span>Lambda</span><span>EventBridge</span><span>DynamoDB</span><span>API Gateway</span><span>SSM &amp; KMS</span><span>Python</span></div>
     </div>
 
