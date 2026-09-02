@@ -7,5 +7,10 @@
 # hosted zone ID and IAM user. Deliberately not published.
 CLAUDE.md
 
+# Local IAM working docs: carry the account ID. Purged from history
+# 2026-09-02; kept local-only ever since.
+infra/ryangrey-infra-policy.json
+infra/ryangrey-infra-trust.json
+
 __pycache__/
 *.pyc

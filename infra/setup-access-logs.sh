@@ -50,7 +50,8 @@
 
 set -euo pipefail
 
-ACCOUNT="<AWS_ACCOUNT_ID>"
+# Resolved from the active credentials so no account ID lives in the repo.
+ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
 REGION="us-east-1"
 SITE_BUCKET="ryangrey.dev"
 BUCKET="ryangrey-dev-logs"

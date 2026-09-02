@@ -15,9 +15,11 @@ set -euo pipefail
 
 REGION="us-east-1"
 FN="ryangrey-chatbot"
-ROLE_ARN="arn:aws:iam::<AWS_ACCOUNT_ID>:role/ryangrey-chatbot-role"
+# Resolved from the active credentials so no account ID lives in the repo.
+ACCT="$(aws sts get-caller-identity --query Account --output text)"
+ROLE_ARN="arn:aws:iam::${ACCT}:role/ryangrey-chatbot-role"
 TABLE="ryangrey-chatbot-ratelimit"
-TOPIC="arn:aws:sns:us-east-1:<AWS_ACCOUNT_ID>:ryangrey-dev-alerts"
+TOPIC="arn:aws:sns:us-east-1:${ACCT}:ryangrey-dev-alerts"
 CHAT_MODEL="us.amazon.nova-lite-v1:0"
 EMBED_MODEL="amazon.titan-embed-text-v2:0"
 API_NAME="ryangrey-chatbot-api"
