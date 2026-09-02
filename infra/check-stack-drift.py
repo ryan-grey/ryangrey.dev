@@ -46,7 +46,7 @@ def card_chips(html):
     Scoped to those cards rather than to the first .stack on the page -- every
     other project card has its own chip row and none of them are this site.
     """
-    blocks = html.split('<div class="project">')
+    blocks = re.split(r'<div class="project"[^>]*>', html)
     chips, seen = [], set()
     for heading in CARD_HEADINGS:
         for block in blocks:
