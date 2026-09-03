@@ -54,6 +54,20 @@ else
   aws lambda wait function-active-v2 --function-name "$FN" --region "$REGION"
 fi
 
+# Record which corpus is now actually inside the function.
+#
+# The corpus ships in the Lambda zip, but `aws s3 sync` in the site workflow
+# excludes infra/*, so committing a rebuilt corpus.json deploys nothing to the
+# bot. On 2026-09-03 that left the committed corpus one version ahead of the
+# live one with every guard still green -- the site deploy had no way to know
+# the chatbot had been left behind.
+#
+# check-corpus-drift.py compares corpus.json against this stamp, so "rebuilt
+# but never deployed" is now a build error. Written only after the update has
+# been waited on, so a failed deploy cannot leave a stamp claiming success.
+shasum -a 256 "${HERE}/corpus.json" | cut -d' ' -f1 > "${HERE}/corpus.deployed.sha256"
+echo "[+] Stamped deployed corpus: $(cut -c1-12 < "${HERE}/corpus.deployed.sha256")..."
+
 # Reserved concurrency bounds burst rate. Defence-in-depth only: the hard
 # budget bound is the global monthly counter in DynamoDB, which the function
 # enforces per-invocation regardless of concurrency. Non-fatal either way.

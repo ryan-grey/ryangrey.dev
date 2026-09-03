@@ -12,6 +12,8 @@ Checked here:
   - index.html sha256 matches what the corpus recorded  (hard fail)
   - every chunk vector has the declared dimension count  (hard fail)
   - the embedding model matches the one the Lambda uses (hard fail)
+  - corpus.json matches the corpus actually deployed to the Lambda, via the
+    stamp deploy-chatbot.sh writes                      (hard fail)
 
 Not checkable in CI: the CV source lives outside the repo, so its text is
 frozen into corpus.json at build time. build-corpus.py warns locally when it
@@ -86,11 +88,42 @@ def main():
         else:
             print("advisory: CV source not present here -- cannot verify it (expected in CI)")
 
+    # Has this corpus actually been deployed to the Lambda?
+    #
+    # Everything above proves corpus.json is consistent with its SOURCES. None
+    # of it proves the bot is running that corpus. The corpus ships inside the
+    # Lambda zip, and the site workflow's `aws s3 sync` excludes infra/*, so a
+    # rebuilt corpus.json can be committed and deployed to the site while the
+    # chatbot keeps serving the previous one -- every guard green, bot stale.
+    # That happened on 2026-09-03 when the CV was restyled.
+    #
+    # deploy-chatbot.sh writes infra/corpus.deployed.sha256 after the function
+    # update succeeds. Comparing against it turns "rebuilt but not deployed"
+    # into a build error. Pure file comparison: no AWS credentials, so this
+    # runs in CI before the OIDC step like every other check here.
+    stamp_path = ROOT / "infra" / "corpus.deployed.sha256"
+    corpus_sha = hashlib.sha256(corpus_path.read_bytes()).hexdigest()
+    if not stamp_path.exists():
+        failed = True
+        print("\nFAIL: infra/corpus.deployed.sha256 is missing.")
+        print("  Nothing records which corpus the chatbot is actually running.")
+        print("  Deploy it with: infra/deploy-chatbot.sh")
+    else:
+        deployed_sha = stamp_path.read_text().strip()
+        if deployed_sha != corpus_sha:
+            failed = True
+            print("\nFAIL: infra/corpus.json has not been deployed to the chatbot.")
+            print(f"  committed corpus: {corpus_sha}")
+            print(f"  deployed corpus:  {deployed_sha}")
+            print("  The site would ship while the bot keeps answering from the older corpus.")
+            print("  Deploy it with: infra/deploy-chatbot.sh")
+
     if failed:
         print("\nThe chatbot would answer from stale content. Not shipping it.")
         return 1
 
-    print("OK: corpus matches index.html and its declared model/dimensions")
+    print("OK: corpus matches index.html, its declared model/dimensions, "
+          "and the corpus deployed to the Lambda")
     return 0
 
 
