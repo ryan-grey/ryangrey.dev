@@ -116,6 +116,12 @@ by `bootstrap-greybot-iam.sh`, so greyBot policy changes stop needing admin:
 3. `ManageGreybotRolePolicyOnly` allows `iam:PutRolePolicy` and
    `iam:DeleteRolePolicy` on **that one role ARN** and nothing else.
 
+**`PassGreybotSchedulerRoleToSchedulerOnly`** was added on 2026-09-04 (pasted in the
+console as admin, since the role cannot edit itself). EventBridge Scheduler's
+`UpdateSchedule` re-passes the target's `RoleArn` even when it is unchanged, so retiming
+the recap schedule was impossible from the infra role until it could pass exactly that
+one role to exactly `scheduler.amazonaws.com`. That is the whole grant.
+
 Step 2 is what makes step 3 safe, and the order is not optional. Without the
 boundary this would be a clean path to admin: the infra role already holds
 `lambda:*` and `iam:PassRole` to Lambda, so it could write `Action: "*"` onto
