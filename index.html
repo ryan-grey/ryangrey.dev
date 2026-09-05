@@ -286,6 +286,7 @@
     <a href="#p-chatbot">Bedrock Chatbot</a>
     <a href="#p-greybot">greyBot</a>
     <a href="#p-imessage">imessage-mcp</a>
+    <a href="#p-discord">discord-mcp</a>
   </details>
   <a href="#experience"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 0h2.5C10.216 0 11 .784 11 1.75V3h3.25c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25v-8.5C0 3.784.784 3 1.75 3H5V1.75C5 .784 5.784 0 6.75 0ZM3.5 9.5a3.49 3.49 0 0 1-2-.627v4.377c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V8.873a3.49 3.49 0 0 1-2 .627Zm-1.75-5a.25.25 0 0 0-.25.25V6a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V4.75a.25.25 0 0 0-.25-.25H1.75ZM9.5 3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25V3Z"/></svg>Experience</a>
   <a href="#education"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.693 1.066a.747.747 0 0 1 .614 0l7.25 3.25a.75.75 0 0 1 0 1.368L13 6.831v2.794c0 1.024-.81 1.749-1.66 2.173-.893.447-2.075.702-3.34.702-.278 0-.55-.012-.816-.036a.75.75 0 0 1 .133-1.494c.22.02.45.03.683.03 1.082 0 2.025-.221 2.67-.543.69-.345.83-.682.83-.832V7.503L8.307 8.934a.747.747 0 0 1-.614 0L4 7.28v1.663c.296.105.575.275.812.512.438.438.688 1.059.688 1.796v3a.75.75 0 0 1-.75.75h-3a.75.75 0 0 1-.75-.75v-3c0-.737.25-1.358.688-1.796.237-.237.516-.407.812-.512V6.606L.443 5.684a.75.75 0 0 1 0-1.368ZM2.583 5 8 7.428 13.416 5 8 2.572ZM2.5 11.25v2.25H4v-2.25c0-.388-.125-.611-.25-.735a.697.697 0 0 0-.5-.203.707.707 0 0 0-.5.203c-.125.124-.25.347-.25.735Z"/></svg>Education</a>
@@ -498,6 +499,22 @@
       </ul>
       <p class="outcome">Tests run against a fully synthetic fixture database and an in-memory fake of the Contacts layer, because the honest way to publish a tool that reads your texts and your address book is a repository that provably contains neither.</p>
       <div class="stack"><span>Python</span><span>MCP</span><span>SQLite</span><span>FTS5</span><span>AppleScript</span><span>PyObjC</span><span>Contacts.framework</span><span>macOS</span></div>
+    </div>
+
+    <div class="project" id="p-discord">
+      <span class="status live">Live</span>
+      <h3>discord-mcp &mdash; Discord for Claude, with provenance</h3>
+      <div class="meta"><a href="https://github.com/ryan-grey/discord-mcp">Source on GitHub &rarr;</a> &middot; <a href="https://github.com/ryan-grey/discord-local-log">Capture plugin &rarr;</a></div>
+      <p>Discord&rsquo;s API does not let one thing see everything. A bot sees only the servers it has been invited to and can never read direct messages; the only way around that is automating your own user account, which Discord bans. So this is a local MCP server that combines the sources that <em>are</em> allowed &mdash; a bot, the official data-request export, and a capture-only client plugin &mdash; into one SQLite FTS5 index, tags every row with where it came from, and refuses cleanly wherever no compliant path exists.</p>
+      <ul class="caps">
+        <li><b>Three sources, one row per message</b> &mdash; the message&rsquo;s snowflake id is the primary key, so a message seen by two sources exists once and the fuller source wins (bot over capture over export); re-importing the export, re-syncing the bot, or restarting a backfill is idempotent by construction, not by bookkeeping</li>
+        <li><b>Writes only where the bot can act</b> &mdash; send, edit and delete work as the bot, require an explicit confirm flag, log before-and-after to an audit file, and refuse a channel known only from the export or capture sources with a message that says why: there is no permitted way to write as yourself</li>
+        <li><b>The silent failure made loud</b> &mdash; a bot without the Message Content intent connects fine and indexes every message as empty text, so the status tool reads the intent flag off the application itself and the sync warns when nearly every fetched row comes back blank</li>
+        <li><b>Honest about the export</b> &mdash; Discord&rsquo;s data package contains only the messages you sent, not the replies; the README carries the coverage table saying which combination of sources can and cannot reach each kind of message, rather than implying completeness</li>
+        <li><b>The capture side never sends</b> &mdash; the companion Vencord plugin listens to the client&rsquo;s own message events and appends them to a file from Electron&rsquo;s main process; a launchd job folds that into SQLite with a change counter so edits and deletions flow through too. Its one opt-in step past passive capture &mdash; a paced page-by-page backfill of a conversation, with a time-based ETA, a persisted resume point, and a main-process timer so a minimized window keeps pace &mdash; is documented as exactly that, alongside the client-modification risk it carries</li>
+      </ul>
+      <p class="outcome">First real run indexed 103,730 messages across 35 channels in one evening. The repository contains none of them: fixtures are synthetic, the bot token lives in SSM Parameter Store and is never written to disk by the code, and the tests assert that a second import adds nothing.</p>
+      <div class="stack"><span>Python</span><span>MCP</span><span>Discord API</span><span>SQLite</span><span>FTS5</span><span>SSM</span><span>TypeScript</span><span>Vencord</span><span>Electron</span><span>launchd</span></div>
     </div>
 
   </section>
