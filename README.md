@@ -70,7 +70,7 @@ Resolution never broke. The failure mode being avoided here is a genuinely nasty
 
 ```bash
 aws s3 sync . s3://<bucket> \
-  --exclude ".DS_Store" --exclude "*.md" --exclude ".*"
+  --exclude ".*" --exclude "*.md" --exclude "infra/*"
 
 aws cloudfront create-invalidation --distribution-id <distribution-id> \
   --paths "/index.html"

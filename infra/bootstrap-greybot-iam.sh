@@ -177,8 +177,9 @@ cat <<EOF
 
 Done, and this is the last time CloudShell is needed for greyBot.
 
-Everything else now runs from the Mac as \`aws --profile infra\`. Finish the alerts with:
+Everything else now runs from the Mac as \`aws --profile infra\`.
+Finish the alerts with:
 
-  bash ~/Documents/scrambled-raid-bot/infra/grant-alerts.sh
-  cd ~/Documents/scrambled-raid-bot && scripts/deploy.sh
+  bash ~/Developer/scrambled-raid-bot/infra/grant-alerts.sh
+  cd ~/Developer/scrambled-raid-bot && scripts/deploy.sh
 EOF
