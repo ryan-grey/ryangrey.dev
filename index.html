@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ryan Grey — AI &amp; Cloud Operations</title>
-<meta name="description" content="Ryan Grey — AI &amp; Cloud Operations. AWS-certified systems professional building serverless applications, monitoring, secure CI/CD and native Apple applications.">
+<meta name="description" content="Ryan Grey — AI &amp; Cloud Operations. AWS-certified systems professional building serverless applications, monitoring, secure CI/CD and native macOS and iOS applications.">
 <meta property="og:title" content="Ryan Grey — AI &amp; Cloud Operations">
-<meta property="og:description" content="AWS-certified systems professional building serverless applications, monitoring, secure CI/CD and native Apple applications. Projects, experience, and CV.">
+<meta property="og:description" content="AWS-certified systems professional building serverless applications, monitoring, secure CI/CD and native macOS and iOS applications. Projects, experience, and CV.">
 <meta property="og:url" content="https://ryangrey.dev">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ryangrey.dev">
@@ -303,7 +303,7 @@
         <div class="kicker">Open to remote</div>
         <h1>Ryan Grey</h1>
         <div class="role">AI &amp; Cloud Operations</div>
-        <p class="lede">AWS-certified systems professional with 10 years in healthcare operations supporting $1B+ in annual billing across 13 hospitals. Builds serverless AWS applications, monitoring, secure CI/CD and native Apple applications.</p>
+        <p class="lede">AWS-certified systems professional with 10 years in healthcare operations supporting $1B+ in annual billing across 13 hospitals. Builds serverless AWS applications, monitoring, secure CI/CD and native macOS and iOS applications.</p>
       </div>
     </div>
     <div class="badges">
@@ -345,6 +345,7 @@
       <p>Registered domain transferred from GoDaddy to Route 53 (including tearing down a stale DNSSEC chain — DS records deleted at the .dev registry before the nameserver cutover, so resolution never broke). Hosted from S3, fronted by CloudFront with a free ACM certificate. The .dev TLD is HSTS-preloaded, so every connection is HTTPS by force.</p>
       <ul class="caps">
         <li><b>Keyless CI/CD</b> — OIDC-federated deploys, no stored credentials; every deploy verified byte-for-byte against the commit, behind three drift guards that run before any credential is assumed</li>
+        <li><b>Security headers at the edge</b> — a strict CSP: <b style="font-weight:600">script-src 'none'</b> on this page, which carries no JavaScript at all</li>
         <li><b>Self-testing monitoring</b> — alarm &rarr; SNS &rarr; Lambda &rarr; SES, with a monthly heartbeat that shares no failure modes with the path it tests</li>
       </ul>
       <p class="more"><a href="https://github.com/ryan-grey/ryangrey.dev">Full write-ups and infrastructure code on GitHub &rarr;</a></p>
@@ -381,6 +382,8 @@
       <div class="meta">How this site ships and how it tells on itself when it breaks.</div>
       <p>Push-to-main deploys assume a least-privilege IAM role through OIDC federation with zero stored AWS keys, then verify the live page byte-matches the commit. GitHub&rsquo;s undocumented immutable-ID subject claims were diagnosed by decoding the runner&rsquo;s own JWT.</p>
       <ul class="caps">
+        <li><b>Deployment checks</b> &mdash; the stack manifest is checked before AWS credentials are assumed; live page assets and deployed content are verified after publication</li>
+        <li><b>Security headers at the edge</b> &mdash; CloudFront Functions inject a strict CSP: <b style="font-weight:600">script-src 'none'</b> on the main page, which carries no JavaScript at all</li>
         <li><b>Mail that actually arrives</b> &mdash; a CloudFront 5xx alarm routed through Lambda to SES, signing DKIM as ryangrey.dev via Route 53, so DMARC passes on DKIM alignment where SPF cannot align; built after tracing silent drops to a provider accepting mail and discarding it</li>
         <li><b>Monitoring that tests itself</b> &mdash; an EventBridge Scheduler heartbeat force-fires that alarm monthly through a path sharing no failure modes with the pipeline it tests, behind an AWS Budgets guardrail</li>
       </ul>
@@ -430,8 +433,6 @@
       </figure>
       <div class="stack"><span>Swift</span><span>SwiftUI</span><span>macOS</span><span>CloudWatch</span><span>Cost Explorer</span><span>IAM &amp; STS</span><span>AWS SigV4</span></div>
     </div>
-
-
 
     <div class="project" id="p-greybot">
       <span class="status live">Live</span>

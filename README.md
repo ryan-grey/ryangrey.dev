@@ -1,5 +1,6 @@
 # ryangrey.dev
 
+My personal site. No build step, no dependencies, and no external requests — served from a private S3 bucket behind CloudFront. The page itself is a single HTML file with no JavaScript.
 
 **Live:** <https://ryangrey.dev>
 
@@ -13,6 +14,8 @@ I set these up front and held to them:
 | --- | --- |
 | No build tooling | Edit `index.html`, sync, done. Nothing to install, nothing to break in two years. |
 | No frameworks | 0 dependencies. No `node_modules`, no lockfile, no supply chain. |
+| No external requests | No CDN, no analytics, no web fonts, no trackers. Nothing loads from a third party. |
+| No JavaScript | 0 `<script>` tags on the main page. Dark/light theming is pure CSS via `prefers-color-scheme`. |
 | System font stack | Zero font payload; renders natively on every platform. |
 
 Total page weight, everything included:
@@ -25,7 +28,6 @@ Total page weight, everything included:
 | Watchtower screenshot (PNG, lazy-loaded) | 74.9 KB |
 | **Total** | **~222 KB** |
 
-
 ## Architecture
 
 ```mermaid
@@ -33,16 +35,11 @@ flowchart LR
     U["Browser"] --> R53["Route 53<br/><small>DNS · ryangrey.dev</small>"]
     R53 --> CF["CloudFront<br/><small>CDN · ACM TLS</small>"]
     CF -->|"/*"| S3["S3<br/><small>private origin</small>"]
-    AG --> L["Lambda<br/><small>RAG handler</small>"]
-    L --> BR["Bedrock<br/><small>Nova Lite · Titan</small>"]
 
     style U fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style R53 fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style CF fill:#eef2f7,stroke:#7a8494,color:#1c1e21
     style S3 fill:#eef2f7,stroke:#7a8494,color:#1c1e21
-    style AG fill:#eef2f7,stroke:#7a8494,color:#1c1e21
-    style L fill:#eef2f7,stroke:#7a8494,color:#1c1e21
-    style BR fill:#eef2f7,stroke:#7a8494,color:#1c1e21
 ```
 
 - **S3** holds the static files. The bucket is **private** — it is not a website-endpoint bucket and has no public read policy.
@@ -211,7 +208,6 @@ Two judgement calls are worth stating outright:
 - **`img-src` keeps `data:`, though nothing needs it any more.** It was there for a favicon served as an inline `data:image/svg+xml` URI; that became a real `favicon.ico` on 2026-08-26 and no page asset uses a `data:` URI today. The directive is left as-is because narrowing it means redeploying the CloudFront function for no security gain.
 - **`style-src 'unsafe-inline'` is a deliberate compromise.** The CSS is one inline `<style>` block; the strict alternative is a `sha256-` hash of its exact contents, which goes stale on *every* CSS edit and fails silently to an unstyled page. With no JavaScript on the page, there is nothing to weaponise CSS injection against, so the hash buys very little for real operational risk.
 
-
 `X-XSS-Protection` is deliberately **not** set — it is deprecated, and with a real CSP present it can introduce vulnerabilities rather than prevent them.
 
 ### Deploying header changes
@@ -224,7 +220,9 @@ Idempotent. It updates the function, runs `test-function` against a sample event
 
 ### Directory index rewriting
 
+The S3 origin is a REST origin behind OAC, not a website endpoint, so it has no concept of a directory index, and `DefaultRootObject` only applies at the distribution root. Directory paths need an explicit index rewrite. A viewer-request function closes the gap: URIs ending in `/` get `index.html` appended, extensionless URIs get `/index.html`, and anything containing a dot passes through untouched.
 
+It is associated with the **default** cache behavior.
 
 ```bash
 DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-index-rewrite.sh
@@ -232,6 +230,7 @@ DISTRIBUTION_ID=<your-distribution-id> ./infra/deploy-index-rewrite.sh
 
 Same shape as the header deploy — update, test, publish, associate — with one difference: the pre-publish step *asserts* the rewrite contract across six URIs and refuses to publish on a mismatch, rather than printing results to be eyeballed. A rewrite that sends a real file down the directory branch 403s the whole site.
 
+Both function deploys **merge** associations by event type instead of overwriting the list. Writing a bare one-item list is the obvious implementation and silently detaches whichever function is attached to the other event type — deploy the headers, lose the rewrite, break directory navigation.
 
 ## Alert delivery: SNS → Lambda → SES
 
