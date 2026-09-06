@@ -132,6 +132,7 @@
   html:has(#p-greyscale:target)  .sidenav a[href="#p-greyscale"],
   html:has(#p-watchtower:target) .sidenav a[href="#p-watchtower"],
   html:has(#p-greybot:target)    .sidenav a[href="#p-greybot"],
+  html:has(#p-mcp-clients:target) .sidenav a[href="#p-mcp-clients"],
   html:has(#p-imessage:target)   .sidenav a[href="#p-imessage"] {
     background: var(--selected); font-weight: 600;
   }
@@ -146,6 +147,7 @@
   html:has(#p-greyscale:target)  .sidenav a[href="#p-greyscale"]::before,
   html:has(#p-watchtower:target) .sidenav a[href="#p-watchtower"]::before,
   html:has(#p-greybot:target)    .sidenav a[href="#p-greybot"]::before,
+  html:has(#p-mcp-clients:target) .sidenav a[href="#p-mcp-clients"]::before,
   html:has(#p-imessage:target)   .sidenav a[href="#p-imessage"]::before {
     content: ""; position: absolute; left: -8px; top: 7px; bottom: 7px;
     width: 4px; border-radius: 2px; background: var(--accent-emphasis);
@@ -284,6 +286,7 @@
     <a href="#p-greyscale">GreyScale</a>
     <a href="#p-watchtower">Cloud Watchtower</a>
     <a href="#p-greybot">greyBot</a>
+    <a href="#p-mcp-clients">Multi-Client MCP</a>
     <a href="#p-imessage">imessage-mcp</a>
     <a href="#p-discord">discord-mcp</a>
   </details>
@@ -456,11 +459,25 @@
       <div class="stack"><span>Lambda</span><span>EventBridge</span><span>DynamoDB</span><span>S3 &amp; CloudFront</span><span>API Gateway</span><span>SSM &amp; KMS</span><span>Python</span></div>
     </div>
 
+    <div class="project" id="p-mcp-clients">
+      <span class="status live">Live</span>
+      <h3>Multi-Client MCP Integrations &mdash; Claude &amp; Codex</h3>
+      <div class="meta">Python &middot; four local servers &middot; three client registrations per server</div>
+      <p>Adapted the Messages, Contacts, GreyScale and Discord integrations to work across Claude Desktop, Claude Code and Codex. A shared configuration layer connects each client to the same server implementations and virtual environments, so adding another client does not require a separate fork of each server.</p>
+      <ul class="caps">
+        <li><b>One definition, consistent registrations</b> &mdash; a credential-free manifest drives a Python synchronizer that previews drift, backs up affected settings, preserves unrelated entries and verifies the registrations after applying changes</li>
+        <li><b>Parallel sessions, explicit boundaries</b> &mdash; independent clients initialize the servers and enumerate their tools concurrently; read probes verify access separately from a successful connection, without claiming that simultaneous writes have been certified</li>
+        <li><b>Permissions stay with the host</b> &mdash; existing write-confirmation gates remain in place, GreyScale exposes read-only tools, and macOS permissions still govern Messages and Contacts access from each hosting application</li>
+      </ul>
+      <p class="outcome">All twelve registrations match the shared definitions, and repeat synchronization reports no drift. The same integrations can be used from either assistant without maintaining separate server code.</p>
+      <div class="stack"><span>Python</span><span>MCP</span><span>JSON</span><span>TOML</span><span>macOS</span></div>
+    </div>
+
     <div class="project" id="p-imessage">
       <span class="status live">Live</span>
-      <h3>imessage-mcp &mdash; Apple Messages &amp; Contacts for Claude</h3>
+      <h3>imessage-mcp &mdash; Apple Messages &amp; Contacts for Claude &amp; Codex</h3>
       <div class="meta"><a href="https://github.com/ryan-grey/imessage-mcp">Source on GitHub &rarr;</a></div>
-      <p>Local MCP servers that let the Claude desktop app search, read and send Apple Messages, and manage Apple Contacts &mdash; list, dedupe, merge, and move cards between accounts &mdash; on the Mac they run on. Everything stays on the machine: the message database is opened strictly read-only, sending goes through Messages.app itself, contacts go through Apple&rsquo;s own framework, and there is no code path that touches the network.</p>
+      <p>Local MCP servers for Claude and Codex to search, read and send Apple Messages, and manage Apple Contacts &mdash; list, dedupe, merge, and move cards between accounts &mdash; subject to the hosting application&rsquo;s macOS permissions. Everything stays on the machine: the message database is opened strictly read-only, sending goes through Messages.app itself, contacts go through Apple&rsquo;s own framework, and there is no code path that touches the network.</p>
       <ul class="caps">
         <li><b>Read-only by construction</b> &mdash; chat.db is opened with SQLite&rsquo;s <b style="font-weight:600">mode=ro&amp;immutable=1</b>, which takes no locks at all, so a query can never block Messages.app; nothing under the Messages directory is ever written</li>
         <li><b>The text isn&rsquo;t where it says it is</b> &mdash; modern macOS leaves the text column NULL and stores the body only as an archived attributed string, so bodies are decoded from the typedstream blob, and a status tool reports how often that decode is actually working rather than letting search silently return empties</li>
@@ -474,7 +491,7 @@
 
     <div class="project" id="p-discord">
       <span class="status live">Live</span>
-      <h3>discord-mcp &mdash; Discord for Claude, with provenance</h3>
+      <h3>discord-mcp &mdash; Discord for Claude &amp; Codex, with provenance</h3>
       <div class="meta"><a href="https://github.com/ryan-grey/discord-mcp">Source on GitHub &rarr;</a> &middot; <a href="https://github.com/ryan-grey/discord-local-log">Capture plugin &rarr;</a></div>
       <p>Discord&rsquo;s API does not let one thing see everything. A bot sees only the servers it has been invited to and can never read direct messages; the only way around that is automating your own user account, which Discord bans. So this is a local MCP server that combines the sources that <em>are</em> allowed &mdash; a bot, the official data-request export, and a capture-only client plugin &mdash; into one SQLite FTS5 index, tags every row with where it came from, and refuses cleanly wherever no compliant path exists.</p>
       <ul class="caps">
