@@ -57,9 +57,10 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           role-session-name: gha-${{ github.run_id }}-${{ github.run_attempt }}
           aws-region: us-east-1
+          mask-aws-account-id: true
 
       - name: Confirm assumed identity
-        run: aws sts get-caller-identity
+        run: aws sts get-caller-identity >/dev/null
 
       # Every object gets a Cache-Control header. Before 2026-08-26 none did, so browsers
       # fell back to heuristic caching and kept serving a stale avatar and favicon after a
