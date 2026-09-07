@@ -23,8 +23,8 @@ def calendar_fixture():
 class SnapshotTests(unittest.TestCase):
     def test_full_year_and_date_labels(self):
         result = activity.calendar(calendar_fixture())
-        self.assertEqual(result.count('<rect '), 365)
-        self.assertIn(datetime.now(timezone.utc).date().isoformat(), result)
+        self.assertEqual(len(result['days']), 365)
+        self.assertEqual(result['days'][-1]['date'], datetime.now(timezone.utc).date().isoformat())
 
     def test_missing_day_and_wrong_total_fail(self):
         source = calendar_fixture()
@@ -38,15 +38,17 @@ class SnapshotTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 activity.link(activity.Node('a', [('href', url)]))
 
-    def test_remote_text_is_escaped_and_scripts_not_copied(self):
+    def test_remote_text_remains_data_and_scripts_not_copied(self):
         source = '''<div class="contribution-activity-listing"><h3>September 2026</h3>
           <div class="TimelineItem"><summary>Created 1 repository</summary><ul><li>
           <a href="/ryan-grey/example">&lt;img src=x onerror=alert(1)&gt;</a>
           <script>alert(1)</script></li></ul></div></div>'''
         result = activity.activity(source)
-        self.assertIn('&lt;img', result)
-        self.assertNotIn('<script', result)
-        self.assertNotIn('<img', result)
+        self.assertEqual(result['groups'][0]['rows'][0]['links'][0], {
+            'url': 'https://github.com/ryan-grey/example',
+            'text': '<img src=x onerror=alert(1)>',
+        })
+        self.assertNotIn('<script', str(result))
 
     def test_unexpected_response_fails(self):
         for source in ('<h1>Sign in</h1>', '<div class="contribution-activity-listing"><h3>September 2026</h3></div>'):
@@ -55,7 +57,7 @@ class SnapshotTests(unittest.TestCase):
 
     def test_empty_month_is_explicit(self):
         result = activity.activity('<div class="contribution-activity-listing"><h3>September 2026</h3><p>No activity yet</p></div>')
-        self.assertIn('No public contribution activity this month', result)
+        self.assertEqual(result, {'month': 'September 2026', 'groups': []})
 
 
 if __name__ == '__main__':

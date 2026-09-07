@@ -1,6 +1,6 @@
 # ryangrey.dev
 
-My personal site. No build step, no dependencies, and no external requests — served from a private S3 bucket behind CloudFront. The page itself is a single HTML file with no JavaScript.
+My personal site, served from a private S3 bucket behind CloudFront. The homepage uses a small, self-hosted JavaScript contribution tracker without libraries or third-party browser requests; deployment builds its public JSON feed from GitHub.
 
 **Live:** <https://ryangrey.dev>
 
@@ -15,7 +15,7 @@ I set these up front and held to them:
 | No build tooling | Edit `index.html`, sync, done. Nothing to install, nothing to break in two years. |
 | No frameworks | 0 dependencies. No `node_modules`, no lockfile, no supply chain. |
 | No external requests | No CDN, no analytics, no web fonts, no trackers. Nothing loads from a third party. |
-| No JavaScript | 0 `<script>` tags on the main page. Dark/light theming is pure CSS via `prefers-color-scheme`. |
+| Small JavaScript client | One deferred, self-hosted script renders GitHub activity. Dark/light theming stays in CSS via `prefers-color-scheme`. |
 | System font stack | Zero font payload; renders natively on every platform. |
 
 Total page weight, everything included:
@@ -175,7 +175,7 @@ Every response carries a full set of security headers, added by a CloudFront **v
 | Header | Value |
 | --- | --- |
 | `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` |
-| `Content-Security-Policy` | `default-src 'none'; script-src 'none'; …` (below) |
+| `Content-Security-Policy` | Homepage: `default-src 'none'; script-src 'self'; …` (below) |
 | `X-Frame-Options` | `DENY` |
 | `X-Content-Type-Options` | `nosniff` |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
@@ -195,18 +195,18 @@ Worth reading carefully — that is `InvalidArgument`, not `AccessDenied`. The I
 ### The CSP
 
 ```
-default-src 'none'; script-src 'none'; style-src 'unsafe-inline';
-img-src 'self' data:; font-src 'none'; connect-src 'none';
+default-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'unsafe-inline';
+img-src 'self' data:; font-src 'none'; connect-src 'self';
 object-src 'none'; base-uri 'none'; form-action 'none';
 frame-ancestors 'none'; upgrade-insecure-requests
 ```
 
-`script-src 'none'` is the one that matters, and it is only available because the site genuinely has **zero `<script>` tags**. That single directive removes the whole XSS class rather than mitigating it — a property of the no-JavaScript constraint, not of the header.
+This policy applies only to `/` and `/index.html`. It allows the site's own contribution script and JSON feed while blocking inline scripts, inline event handlers, `eval`, and third-party scripts or data requests. Other pages retain `script-src 'none'` and `connect-src 'none'`. Activity labels are inserted as text rather than HTML, and links are restricted to GitHub.
 
 Two judgement calls are worth stating outright:
 
 - **`img-src` keeps `data:`, though nothing needs it any more.** It was there for a favicon served as an inline `data:image/svg+xml` URI; that became a real `favicon.ico` on 2026-08-26 and no page asset uses a `data:` URI today. The directive is left as-is because narrowing it means redeploying the CloudFront function for no security gain.
-- **`style-src 'unsafe-inline'` is a deliberate compromise.** The CSS is one inline `<style>` block; the strict alternative is a `sha256-` hash of its exact contents, which goes stale on *every* CSS edit and fails silently to an unstyled page. With no JavaScript on the page, there is nothing to weaponise CSS injection against, so the hash buys very little for real operational risk.
+- **`style-src 'unsafe-inline'` permits the existing inline stylesheet.** This does not permit inline JavaScript. A stylesheet hash would need updating with every CSS edit.
 
 `X-XSS-Protection` is deliberately **not** set — it is deprecated, and with a real CSP present it can introduce vulnerabilities rather than prevent them.
 
@@ -332,27 +332,37 @@ The monthly email is a heartbeat: its arrival confirms the chain works. Its **ab
 
 The homepage includes the public contribution calendar and current activity from
 GitHub between Technical Skills and Projects. `infra/build-github-activity.py`
-reads the signed-out profile without credentials and renders escaped text and
-validated GitHub links into the marked section in `index.html`.
+reads the signed-out profile without credentials and writes `github-activity.json`.
+`github-activity.js` validates that feed and renders the graph and activity in the
+browser. Hover, tap, or keyboard navigation reveals daily totals and a link to
+that day's GitHub history. The update button fetches the latest published feed;
+it does not trigger a new GitHub crawl. Returning to the tab after fifteen minutes
+also checks for an updated feed. Loading, delayed-data, and retry states are shown
+explicitly; a failed refresh preserves the already displayed data. With scripts
+disabled, the page still links directly to the full GitHub profile.
 
 The deployment workflow refreshes it on pushes, manual runs, and every six hours.
-Scheduled runs update the deployed page without creating commits. GitHub may
-delay scheduled runs; the page shows its last successful refresh in UTC. Public
+Scheduled runs update the feed without creating commits. GitHub may
+delay scheduled runs; the page shows its last successful refresh in the visitor's local time. Public
 counts can differ from the account owner's signed-in view. If GitHub changes its
 HTML or a fetch fails, validation stops before upload and the last snapshot stays
-live. Run `python3 infra/test-github-activity.py` to check the renderer.
+live. Run `python3 infra/test-github-activity.py` and
+`node --test infra/test-github-client.cjs` to check the parser, client validation,
+and route-scoped security policy. Neither scripts nor feed require credentials
+in the visitor's browser.
 
 ```
-index.html                          the entire site — markup, CSS, and SVG diagram
-ask/index.html                      the "Ask about Ryan" chat page
-ask/app.js                          its client (the site's only JavaScript)
+index.html                          site markup, CSS, and architecture diagram
+github-activity.js                  interactive contribution client
+github-activity.json                public feed generated during deployment
 rg-avatar.png                       brand mark, hero avatar (replaced the headshot)
 favicon.ico                         brand mark, 16/32/48 in one file
 apple-touch-icon.png                brand mark, 180px
 og-card-v3.png                      1200x630 social preview (og:image)
 watchtower-panel.png                Cloud Watchtower screenshot on its project card
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
-ryan-grey-cv.pdf                    CV linked from the page
+Ryan_Grey_Resume.pdf                canonical resume download
+ryan-grey-cv.pdf                    compatibility copy for existing links
 .github/workflows/deploy.yml        keyless CI/CD pipeline
 infra/setup-oidc.sh                 one-time IAM OIDC provider + role setup
 infra/cloudfront-security-headers.js   viewer-response function: security headers

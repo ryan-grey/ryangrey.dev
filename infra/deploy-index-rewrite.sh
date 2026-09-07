@@ -68,6 +68,7 @@ done <<'CASES'
 /section/|/section/index.html
 /index.html|/index.html
 /ryan-grey-cv.pdf|/ryan-grey-cv.pdf
+/Ryan_Grey_Resume.pdf|/Ryan_Grey_Resume.pdf
 /section/app.js|/section/app.js
 CASES
 rm -f /tmp/idx-event.json

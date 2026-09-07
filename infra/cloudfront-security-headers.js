@@ -12,20 +12,22 @@
 // Deploy:  ./infra/deploy-security-headers.sh
 //
 // CSP notes:
-//   script-src 'none'   -- the site has zero <script> tags, so the entire XSS
-//                          class is removed rather than mitigated.
+//   Homepage only: script-src 'self' and connect-src 'self' allow the local
+//   contribution script and JSON feed. Inline handlers, inline scripts, eval,
+//   and third-party scripts/connections remain blocked. Other pages keep
+//   script-src 'none' and connect-src 'none'.
 //   img-src  ... data:  -- REQUIRED. The favicon is an inline data:image/svg+xml
 //                          URI; without `data:` the tab icon silently vanishes.
 //   style-src 'unsafe-inline'
 //                       -- the CSS is one inline <style> block. The strict
 //                          alternative is a sha256- hash of its exact contents,
 //                          which goes stale on every CSS edit and fails silently
-//                          to an unstyled page. With no JavaScript on the page
-//                          there is nothing to weaponise CSS injection against.
+//                          to an unstyled page.
 //   X-XSS-Protection is deliberately NOT set: it is deprecated and can
 //   introduce vulnerabilities when a real CSP is present.
 
 var CSP_STRICT = "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests";
+var CSP_HOME = CSP_STRICT.replace("script-src 'none'", "script-src 'self'; script-src-attr 'none'").replace("connect-src 'none'", "connect-src 'self'");
 
 function handler(event) {
     var h = event.response.headers;
@@ -33,7 +35,8 @@ function handler(event) {
     h['x-content-type-options']    = { value: 'nosniff' };
     h['x-frame-options']           = { value: 'DENY' };
     h['referrer-policy']           = { value: 'strict-origin-when-cross-origin' };
-    h['content-security-policy'] = { value: CSP_STRICT };
+    var uri = event.request.uri;
+    h['content-security-policy'] = { value: uri === '/' || uri === '/index.html' ? CSP_HOME : CSP_STRICT };
     h['permissions-policy']        = { value: 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()' };
     return event.response;
 }

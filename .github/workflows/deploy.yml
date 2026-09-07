@@ -40,11 +40,15 @@ jobs:
       - name: Check stack manifest against the chip row
         run: python3 infra/check-stack-drift.py --readme
 
-      # Render signed-out GitHub data before assuming the deployment role.
+      - name: Check resume compatibility copy
+        run: cmp Ryan_Grey_Resume.pdf ryan-grey-cv.pdf
+
+      # Build the public JSON feed before assuming the deployment role.
       # A fetch or parse failure preserves the last successful live snapshot.
       - name: Refresh public GitHub contributions
         run: |
           python3 infra/test-github-activity.py
+          node --test infra/test-github-client.cjs
           python3 infra/build-github-activity.py
 
       - name: Assume AWS role via OIDC
@@ -88,6 +92,20 @@ jobs:
               --content-type "text/html" \
               --cache-control "public, max-age=0, must-revalidate" >/dev/null
             echo "  $f  max-age=0, must-revalidate"
+          done
+          # Client and feed revalidate so refresh never serves an old browser copy.
+          aws s3 cp github-activity.js s3://ryangrey.dev/github-activity.js \
+            --content-type "text/javascript" \
+            --cache-control "public, max-age=0, must-revalidate" >/dev/null
+          aws s3 cp github-activity.json s3://ryangrey.dev/github-activity.json \
+            --content-type "application/json" \
+            --cache-control "public, max-age=0, must-revalidate" >/dev/null
+          # Keep the legacy URL working with the current download filename.
+          for f in Ryan_Grey_Resume.pdf ryan-grey-cv.pdf; do
+            aws s3 cp "$f" "s3://ryangrey.dev/$f" \
+              --content-type "application/pdf" \
+              --content-disposition 'attachment; filename="Ryan_Grey_Resume.pdf"' \
+              --cache-control "public, max-age=3600, must-revalidate" >/dev/null
           done
           # Versioned assets. The filename changes whenever the bytes do, so a URL only
           # ever holds one image and can be cached forever. This is the fix for a stale
@@ -142,3 +160,14 @@ jobs:
       # browser does and fetches it.
       - name: Verify page assets resolve
         run: python3 infra/check-page-assets.py
+
+      - name: Verify contribution feed and resume downloads
+        run: |
+          for f in github-activity.js github-activity.json Ryan_Grey_Resume.pdf ryan-grey-cv.pdf; do
+            curl --fail --silent --show-error --connect-timeout 15 --max-time 25 \
+              -D /tmp/asset-headers.txt "https://ryangrey.dev/$f" -o /tmp/live-asset
+            cmp "$f" /tmp/live-asset
+            case "$f" in
+              *.pdf) grep -qi 'content-disposition: attachment; filename="Ryan_Grey_Resume.pdf"' /tmp/asset-headers.txt ;;
+            esac
+          done
