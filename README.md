@@ -328,6 +328,20 @@ The monthly email is a heartbeat: its arrival confirms the chain works. Its **ab
 
 ## Contents
 
+### GitHub activity
+
+The homepage includes the public contribution calendar and current activity from
+GitHub between Technical Skills and Projects. `infra/build-github-activity.py`
+reads the signed-out profile without credentials and renders escaped text and
+validated GitHub links into the marked section in `index.html`.
+
+The deployment workflow refreshes it on pushes, manual runs, and every six hours.
+Scheduled runs update the deployed page without creating commits. GitHub may
+delay scheduled runs; the page shows its last successful refresh in UTC. Public
+counts can differ from the account owner's signed-in view. If GitHub changes its
+HTML or a fetch fails, validation stops before upload and the last snapshot stays
+live. Run `python3 infra/test-github-activity.py` to check the renderer.
+
 ```
 index.html                          the entire site — markup, CSS, and SVG diagram
 ask/index.html                      the "Ask about Ryan" chat page

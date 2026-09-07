@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
 
 # Never let two deploys race each other onto the same bucket.
 concurrency:
@@ -37,6 +39,13 @@ jobs:
       # bucket, and this needs no credentials to detect.
       - name: Check stack manifest against the chip row
         run: python3 infra/check-stack-drift.py --readme
+
+      # Render signed-out GitHub data before assuming the deployment role.
+      # A fetch or parse failure preserves the last successful live snapshot.
+      - name: Refresh public GitHub contributions
+        run: |
+          python3 infra/test-github-activity.py
+          python3 infra/build-github-activity.py
 
       - name: Assume AWS role via OIDC
         uses: aws-actions/configure-aws-credentials@v4
