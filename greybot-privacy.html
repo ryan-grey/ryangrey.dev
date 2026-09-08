@@ -57,7 +57,7 @@
 <main>
   <p class="kicker">greyBot</p>
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated 31 August 2026</p>
+  <p class="updated">Last updated 8 September 2026</p>
 
   <p class="lede" style="margin-top:16px">
     greyBot is a Discord app that announces a World of Warcraft guild's first Heroic boss
@@ -66,10 +66,10 @@
   </p>
 
   <div class="card">
-    <p><strong>The short version.</strong> greyBot stores no Discord personal data. It
-    records no Discord user IDs, no usernames, no message content, and nothing about who
-    uses its commands. What it does store are World of Warcraft character names, taken
-    from raid logs that are already public.</p>
+    <p><strong>The short version.</strong> greyBot supports raid announcements and server
+    administration. It stores public raid data and, for servers using the control service,
+    Discord member profiles, server events, moderation records and enabled message history.
+    The administration website requires current server administrator access.</p>
   </div>
 
   <h2>What it stores</h2>
@@ -82,55 +82,71 @@
       stops the same kill being announced twice.</li>
     <li><strong>Operational state</strong> — timestamps, raid and boss identifiers, and a
       record of whether the app can still reach Discord.</li>
+    <li><strong>Server records</strong> — Discord member, role and channel identifiers;
+      cached server nicknames and avatar URLs; joins, departures and supported audit changes;
+      settings, administrative sign-ins and moderation requests and results.</li>
+    <li><strong>Optional message history</strong> — captured server message text and observed
+      edit/deletion versions in the private local index. Coverage depends on the bot's
+      access and connection history; unseen or previously deleted messages cannot be recovered.</li>
+    <li><strong>Verification records</strong> — the member requesting verification, the
+      requested role and the result. Short-lived website sessions identify the signed-in
+      member; member-verification sessions do not grant administrator access.</li>
   </ul>
 
   <h2>What it does not store</h2>
   <ul>
-    <li>Discord user IDs, usernames, avatars or profile data.</li>
-    <li>Message content, channel history, or anything read from a server's messages.
-      greyBot does not read messages and has no permission to.</li>
-    <li>Any record of who invokes its <code>/progress</code> command. The command is
-      answered from a cached progress snapshot; the requester is not logged or retained.</li>
-    <li>Email addresses, IP addresses, payment details, or analytics of any kind.</li>
+    <li>The control collector does not import direct messages or records from other servers.</li>
+    <li>Discord OAuth access tokens and verification challenge tokens are not retained
+      in the event journal. Credentials used to operate the service are kept separately.</li>
+    <li>The metadata journal excludes message text, attachments, invite codes and arbitrary
+      Discord audit reasons. Enabled message text is held in a separate private index.</li>
+    <li>The application does not request payment information or sell server records.</li>
   </ul>
 
   <h2>Where the data comes from</h2>
   <p>
-    greyBot reads from three public sources and writes to one place. It queries
+    The raid service queries
     <a href="https://www.warcraftlogs.com/" rel="noopener">Warcraft Logs</a> for which
     bosses died and when, <a href="https://raider.io/" rel="noopener">Raider.IO</a> for
     guild progress and realm rank, and Blizzard's public game data API for boss artwork.
-    It posts to a single Discord channel through a webhook. No data is sent to those three
-    services beyond the queries needed to read from them.
+    Discord supplies server events and member information according to the bot's permissions.
+    Announcements are sent as greyBot to configured channels; full raid scorecards are
+    published separately on <a href="https://raids.ryangrey.dev/">the raid website</a>.
+    Discord provides sign-in, and Cloudflare Turnstile processes human-verification
+    challenges. Hosting and verification providers may process connection information
+    under their own privacy policies.
   </p>
 
   <h2>How long it is kept</h2>
   <p>
     Raid state and character names are kept for as long as the app runs for that guild,
     because the whole purpose of the record is to remember that a boss was already
-    announced. There is no automatic expiry. To have a guild's stored data deleted, ask
-    using the contact below and it will be removed.
+    announced. There is no automatic expiry for raid state or the current local server
+    archive. The application prevents editing archived events; the NAS owner retains
+    recovery and removal authority. Contact the server administrators or the developer
+    below about access, corrections or removal of stored server data.
   </p>
 
   <h2>Who can see it</h2>
   <p>
-    The stored data lives in a private Amazon DynamoDB table in the operator's own AWS
-    account, in the US East (N. Virginia) region. It is not shared with anyone, not sold,
-    not used for advertising, and not used to train anything. The only place any of it
-    becomes visible is in the messages greyBot posts to the guild's own Discord channel.
+    Raid state is held in private AWS storage; published raid scorecards can be read by
+    anyone with their URLs. Server history and moderation records are held on the
+    operator's private NAS and available to current server administrators through the
+    authenticated dashboard. Configured Discord audit channels may show selected changes
+    and captured message text to members who can view those channels. The full private
+    event history is independent of those posting filters.
   </p>
 
   <h2>Children</h2>
   <p>
-    greyBot is not directed at children and collects nothing that would identify one. It
-    is intended for use in Discord servers, which require users to meet Discord's own
-    minimum age.
+    greyBot is intended for users who meet Discord's minimum age requirements and their
+    server's membership rules. It does not ask members to provide their date of birth.
   </p>
 
   <h2>Changes</h2>
   <p>
     If what the app stores changes, this page changes with it, and the date at the top is
-    updated. There is no mailing list to notify, because greyBot collects no addresses.
+    updated.
   </p>
 
   <h2>Contact</h2>
