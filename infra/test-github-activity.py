@@ -10,17 +10,28 @@ activity = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(activity)
 
 
-def calendar_fixture():
+def calendar_fixture(count=365):
     today = datetime.now(timezone.utc).date()
     cells = []
-    for i in range(365):
-        day = today - timedelta(days=364 - i)
+    for i in range(count):
+        day = today - timedelta(days=count - 1 - i)
         cells.append(f'<td data-date="{day}" data-level="0" id="day-{i}"></td>'
                      f'<tool-tip for="day-{i}">No contributions on a day.</tool-tip>')
     return '<h2 id="js-contribution-activity-description">0 contributions in the last year</h2><table>' + ''.join(cells) + '</table>'
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_week_aligned_calendar_and_bounds(self):
+        for count in (366, 367, 371):
+            self.assertEqual(len(activity.calendar(calendar_fixture(count))['days']), count)
+        for count in (364, 372):
+            with self.assertRaises(ValueError):
+                activity.calendar(calendar_fixture(count))
+        source = calendar_fixture(367)
+        today = datetime.now(timezone.utc).date()
+        with self.assertRaises(ValueError):
+            activity.calendar(source.replace(str(today - timedelta(days=1)), str(today)))
+
     def test_full_year_and_date_labels(self):
         result = activity.calendar(calendar_fixture())
         self.assertEqual(len(result['days']), 365)

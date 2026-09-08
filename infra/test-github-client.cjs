@@ -4,13 +4,13 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { validate, dayLabel, githubURL } = require('../github-activity.js');
 
-function fixture() {
+function fixture(count = 365) {
   const end = Date.UTC(2026, 8, 7);
   return {
     schemaVersion: 1, updatedAt: new Date().toISOString(), profile: 'https://github.com/ryan-grey',
-    calendar: {total: 1, days: Array.from({length: 365}, (_, i) => ({
-      date: new Date(end - (364 - i) * 86400000).toISOString().slice(0, 10),
-      count: i === 364 ? 1 : 0, level: i === 364 ? 1 : 0,
+    calendar: {total: 1, days: Array.from({length: count}, (_, i) => ({
+      date: new Date(end - (count - 1 - i) * 86400000).toISOString().slice(0, 10),
+      count: i === count - 1 ? 1 : 0, level: i === count - 1 ? 1 : 0,
     }))}, activity: {month: 'September 2026', groups: []},
   };
 }
@@ -18,6 +18,13 @@ function fixture() {
 test('validates a complete feed and formats dates consistently', () => {
   const data = validate(fixture());
   assert.equal(dayLabel(data.calendar.days.at(-1)), '1 contribution on September 7, 2026');
+});
+test('accepts week-aligned years while retaining size and continuity guards', () => {
+  for (const count of [366, 367, 371]) assert.equal(validate(fixture(count)).calendar.days.length, count);
+  for (const count of [364, 372]) assert.throws(() => validate(fixture(count)));
+  const duplicate = fixture(367);
+  duplicate.calendar.days[1].date = duplicate.calendar.days[0].date;
+  assert.throws(() => validate(duplicate));
 });
 test('rejects missing days, impossible dates, and mismatched totals', () => {
   for (const mutate of [d => d.calendar.days.pop(), d => d.calendar.total++,

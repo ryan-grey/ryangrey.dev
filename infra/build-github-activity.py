@@ -104,7 +104,9 @@ def calendar(source):
             raise ValueError("Unexpected calendar cell")
         days.append((day, level, 0 if count[1] == "No" else int(count[1].replace(",", ""))))
     days.sort()
-    if len(days) not in (365, 366) or any(
+    # GitHub includes the leading partial week: its 53-column grid can
+    # contain 365 through 371 dated cells, not just a calendar-year count.
+    if not 365 <= len(days) <= 371 or any(
         (b[0] - a[0]).days != 1 for a, b in zip(days, days[1:])
     ):
         raise ValueError("Calendar is incomplete or has duplicate dates")

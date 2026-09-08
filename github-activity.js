@@ -25,7 +25,7 @@
     if (data?.schemaVersion !== 1 || data.profile !== PROFILE ||
         !Number.isFinite(Date.parse(data.updatedAt)) ||
         Date.parse(data.updatedAt) > Date.now() + DAY ||
-        !Array.isArray(data.calendar?.days) || ![365, 366].includes(data.calendar.days.length) ||
+        !Array.isArray(data.calendar?.days) || data.calendar.days.length < 365 || data.calendar.days.length > 371 ||
         !Number.isSafeInteger(data.calendar.total) || data.calendar.total < 0 ||
         typeof data.activity?.month !== 'string' || !Array.isArray(data.activity.groups)) {
       throw new Error('Invalid contribution feed');
