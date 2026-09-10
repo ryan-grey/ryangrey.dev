@@ -18,15 +18,13 @@ I set these up front and held to them:
 | Small JavaScript client | One deferred, self-hosted script renders GitHub activity. Dark/light theming stays in CSS via `prefers-color-scheme`. |
 | System font stack | Zero font payload; renders natively on every platform. |
 
-Total page weight, everything included:
+Selected image payloads (uncompressed transfer sizes):
 
 | Asset | Size |
 | --- | --- |
-| `index.html` (markup + inline CSS + inline SVG) | 27.3 KB |
-| Profile photo (`rg-avatar-v2.png`) | 75.5 KB |
+| Transparent primary mark (`rg-avatar-v3.png`) | 253.7 KB |
 | AWS certification badge (PNG) | 43.8 KB |
 | Watchtower screenshot (PNG, lazy-loaded) | 74.9 KB |
-| **Total** | **~222 KB** |
 
 ## Architecture
 
@@ -355,10 +353,12 @@ in the visitor's browser.
 index.html                          site markup, CSS, and architecture diagram
 github-activity.js                  interactive contribution client
 github-activity.json                public feed generated during deployment
-rg-avatar.png                       brand mark, hero avatar (replaced the headshot)
-favicon.ico                         brand mark, 16/32/48 in one file
+rg-avatar-v3.png                    transparent blue rg/cloud blueprint primary mark
+rg-avatar.png                       current unversioned compatibility export
+favicon-v4.png                      tightly framed primary mark for small uses
+favicon.ico                         brand mark, 16/32/48/64/256 in one file
 apple-touch-icon.png                brand mark, 180px
-og-card-v3.png                      1200x630 social preview (og:image)
+og-card-v4.png                      1200x630 social preview (og:image)
 watchtower-panel.png                Cloud Watchtower screenshot on its project card
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
 Ryan_Grey_Resume.pdf                canonical resume download
