@@ -24,7 +24,8 @@ jobs:
 
     steps:
       - name: Admit lightweight validation work
-        shell: pwsh
+        id: admission
+        shell: powershell
         run: |
           if (Get-Process ffmpeg,ffprobe -ErrorAction SilentlyContinue) {
             Write-Error 'Media work is active; refusing to contend for the PC.'
@@ -32,14 +33,54 @@ jobs:
           }
 
       - name: Checkout trusted revision
+        id: checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Validate GitHub activity client
-        shell: pwsh
+        id: client_tests
+        shell: powershell
         run: |
-          node infra/test-github-client.cjs
+          & 'C:\ProgramData\pc-ai-build-server\runtime\node\node.exe' infra/test-github-client.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node --check github-activity.js
+          & 'C:\ProgramData\pc-ai-build-server\runtime\node\node.exe' --check github-activity.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Write bounded run receipt
+        if: always()
+        shell: powershell
+        env:
+          RECEIPT_RUN_ID: ${{ github.run_id }}
+          RECEIPT_REPOSITORY: ${{ github.repository }}
+          RECEIPT_WORKFLOW: ${{ github.workflow }}
+          RECEIPT_HEAD_SHA: ${{ github.sha }}
+          RECEIPT_REF: ${{ github.ref }}
+          RECEIPT_JOB_STATUS: ${{ job.status }}
+          RECEIPT_RUNNER_NAME: ${{ runner.name }}
+          CHECK_ADMISSION: ${{ steps.admission.outcome }}
+          CHECK_CHECKOUT: ${{ steps.checkout.outcome }}
+          CHECK_CLIENT_TESTS: ${{ steps.client_tests.outcome }}
+        run: |
+          $receipt = [ordered]@{
+            runId = $env:RECEIPT_RUN_ID
+            repository = $env:RECEIPT_REPOSITORY
+            workflow = $env:RECEIPT_WORKFLOW
+            headSha = $env:RECEIPT_HEAD_SHA
+            ref = $env:RECEIPT_REF
+            jobStatus = $env:RECEIPT_JOB_STATUS
+            runnerName = $env:RECEIPT_RUNNER_NAME
+            completedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+            checks = @(
+              [ordered]@{ name = 'resource-admission'; status = $env:CHECK_ADMISSION }
+              [ordered]@{ name = 'checkout'; status = $env:CHECK_CHECKOUT }
+              [ordered]@{ name = 'github-activity-client'; status = $env:CHECK_CLIENT_TESTS }
+            )
+          }
+          $directory = 'C:\ProgramData\pc-ai-build-server\workflow-spool'
+          $path = Join-Path $directory "$($env:RECEIPT_RUN_ID).json"
+          $temporary = "$path.tmp"
+          New-Item -ItemType Directory -Force -Path $directory | Out-Null
+          $json = $receipt | ConvertTo-Json -Depth 4
+          [IO.File]::WriteAllText($temporary, $json, (New-Object Text.UTF8Encoding($false)))
+          Move-Item -Force $temporary $path
