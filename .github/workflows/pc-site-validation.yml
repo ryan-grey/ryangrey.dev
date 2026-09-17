@@ -1,0 +1,45 @@
+name: PC site validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pc-site-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate on NoxStellaris
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'ryan-grey/ryangrey.dev' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'ryan-grey' &&
+      github.triggering_actor == 'ryan-grey'
+    runs-on: [self-hosted, Windows, X64, noxstellaris-build-isolated]
+    timeout-minutes: 10
+
+    steps:
+      - name: Admit lightweight validation work
+        shell: pwsh
+        run: |
+          if (Get-Process ffmpeg,ffprobe -ErrorAction SilentlyContinue) {
+            Write-Error 'Media work is active; refusing to contend for the PC.'
+            exit 75
+          }
+
+      - name: Checkout trusted revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate GitHub activity client
+        shell: pwsh
+        run: |
+          node infra/test-github-client.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check github-activity.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
