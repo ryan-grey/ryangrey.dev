@@ -7,6 +7,9 @@
     <title>&lt;3 Kevin</title>
     <style>
       :root {
+        --page-padding: clamp(1rem, 4vw, 2.5rem);
+        --content-gap: clamp(1rem, 3vh, 1.75rem);
+        --heading-size: clamp(2rem, 6vw, 4rem);
         color-scheme: dark;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         background: #0d1117;
@@ -22,7 +25,7 @@
         margin: 0;
         display: grid;
         place-items: center;
-        padding: clamp(1rem, 4vw, 2.5rem);
+        padding: var(--page-padding);
         background: #0d1117;
       }
 
@@ -30,12 +33,12 @@
         width: min(100%, 56.25rem);
         display: grid;
         justify-items: center;
-        gap: clamp(1rem, 3vh, 1.75rem);
+        gap: var(--content-gap);
       }
 
       h1 {
         margin: 0;
-        font-size: clamp(2rem, 6vw, 4rem);
+        font-size: var(--heading-size);
         line-height: 1;
         letter-spacing: -0.03em;
         text-align: center;
@@ -46,7 +49,10 @@
         width: auto;
         height: auto;
         max-width: 100%;
-        max-height: calc(100svh - 8rem);
+        max-height: calc(
+          100svh - var(--page-padding) - var(--page-padding) -
+          var(--heading-size) - var(--content-gap)
+        );
         object-fit: contain;
         border: 1px solid #30363d;
         border-radius: 0.75rem;
