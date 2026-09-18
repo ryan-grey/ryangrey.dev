@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Fetch the portfolio and verify every referenced asset loads."""
 import argparse
+import json
 import re
 import sys
 import urllib.error
 import urllib.request
 from urllib.parse import urljoin
 
-PAGES = ["/"]
+PAGES = ["/", "/404.html", "/greybot-terms.html", "/greybot-privacy.html"]
 
 ASSET = re.compile(r'<(?:script|link|img)\b[^>]*?\b(?:src|href)\s*=\s*"([^"]+)"', re.I)
 OG_IMAGE = re.compile(r'<meta\b[^>]*?property="og:image"[^>]*?content="([^"]+)"', re.I)
+MANIFEST = re.compile(r'<link\b[^>]*?rel="manifest"[^>]*?href="([^"]+)"', re.I)
 SKIP = ("data:", "mailto:", "#", "http://", "https://")
 
 
@@ -65,6 +67,23 @@ def main():
             except urllib.error.HTTPError as e:
                 print(f"    {'og:image':<24} -> {ref}  HTTP {e.code}")
                 failures.append(f"{page_url} og:image {ref} returns HTTP {e.code}")
+
+        for ref in MANIFEST.findall(html):
+            target = urljoin(page_url, ref)
+            try:
+                _, body = get(target)
+                manifest = json.loads(body)
+            except (urllib.error.HTTPError, json.JSONDecodeError) as e:
+                failures.append(f"{page_url} manifest {target} failed: {e}")
+                continue
+            for icon in manifest.get("icons", []):
+                icon_ref = icon.get("src", "")
+                icon_url = urljoin(target, icon_ref)
+                try:
+                    code, _ = get(icon_url)
+                    print(f"    {'manifest icon':<24} -> {icon_url}  {code}")
+                except urllib.error.HTTPError as e:
+                    failures.append(f"{target} icon {icon_ref!r} returns HTTP {e.code}")
 
     print()
     if failures:

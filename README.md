@@ -22,7 +22,7 @@ Selected image payloads (uncompressed transfer sizes):
 
 | Asset | Size |
 | --- | --- |
-| Transparent primary mark (`rg-avatar-v3.png`) | 253.7 KB |
+| Approved cloud-g primary mark (`rg-avatar-v4.png`) | 130.0 KB |
 | AWS certification badge (PNG) | 43.8 KB |
 | Watchtower screenshot (PNG, lazy-loaded) | 74.9 KB |
 
@@ -353,12 +353,13 @@ in the visitor's browser.
 index.html                          site markup, CSS, and architecture diagram
 github-activity.js                  interactive contribution client
 github-activity.json                public feed generated during deployment
-rg-avatar-v3.png                    transparent blue rg/cloud blueprint primary mark
+rg-avatar-v4.png                    approved blue g / white cloud primary mark on black
 rg-avatar.png                       current unversioned compatibility export
-favicon-v4.png                      tightly framed primary mark for small uses
+favicon-v5.png                      approved primary mark for small uses
 favicon.ico                         brand mark, 16/32/48/64/256 in one file
 apple-touch-icon.png                brand mark, 180px
-og-card-v4.png                      1200x630 social preview (og:image)
+site.webmanifest                    install/bookmark metadata and current icon URLs
+og-card-v5.png                      1200x630 social preview (og:image)
 watchtower-panel.png                Cloud Watchtower screenshot on its project card
 aws-cloud-practitioner-badge.png    self-hosted Credly badge art
 Ryan_Grey_Resume.pdf                canonical resume download

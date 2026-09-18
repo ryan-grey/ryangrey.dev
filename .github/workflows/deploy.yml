@@ -101,6 +101,9 @@ jobs:
           aws s3 cp github-activity.json s3://ryangrey.dev/github-activity.json \
             --content-type "application/json" \
             --cache-control "public, max-age=0, must-revalidate" >/dev/null
+          aws s3 cp site.webmanifest s3://ryangrey.dev/site.webmanifest \
+            --content-type "application/manifest+json" \
+            --cache-control "public, max-age=0, must-revalidate" >/dev/null
           # Keep the legacy URL working with the current download filename.
           for f in Ryan_Grey_Resume.pdf ryan-grey-cv.pdf; do
             aws s3 cp "$f" "s3://ryangrey.dev/$f" \
@@ -164,7 +167,7 @@ jobs:
 
       - name: Verify contribution feed and resume downloads
         run: |
-          for f in github-activity.js github-activity.json Ryan_Grey_Resume.pdf ryan-grey-cv.pdf; do
+          for f in github-activity.js github-activity.json site.webmanifest Ryan_Grey_Resume.pdf ryan-grey-cv.pdf; do
             curl --fail --silent --show-error --connect-timeout 15 --max-time 25 \
               -D /tmp/asset-headers.txt "https://ryangrey.dev/$f" -o /tmp/live-asset
             cmp "$f" /tmp/live-asset
