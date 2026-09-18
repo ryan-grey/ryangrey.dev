@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>greyBot — About me</title>
+<meta name="description" content="greyBot introduces itself: the Discord bot behind Scrambled's raid cards, recaps, signups, voice clips and server upkeep, every slash command it answers, and what it refuses to do.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ryangrey.dev/greybot.html">
+<meta property="og:title" content="greyBot — About me">
+<meta property="og:description" content="The Discord bot behind Scrambled's raid cards, recaps, signups and voice clips, in its own words.">
+<meta property="og:image" content="https://ryangrey.dev/og-card-v5.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" href="/favicon-v5.ico" type="image/vnd.microsoft.icon" sizes="16x16 32x32 48x48 64x64 128x128 256x256">
+<link rel="icon" href="/favicon-v5.png" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/favicon-v5.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon-v5.png" sizes="180x180">
+<style>
+  :root {
+    --bg: #fafaf8; --ink: #1c1e21; --muted: #5c6470; --line: #e3e1dc;
+    --accent: #1d5fa0; --accent-ink: #174a7e; --card: #ffffff; --chip: #eef2f7;
+    --good: #1a7f37; --good-bg: #dafbe1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --ink: #e8e6e3; --muted: #9aa3af; --line: #262b33;
+      --accent: #6aa8e0; --accent-ink: #8dbceb; --card: #191d24; --chip: #212832;
+      --good: #56d364; --good-bg: #12261a;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 48px 22px 80px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .kicker { font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 40px; line-height: 1.12; margin: 6px 0 10px; letter-spacing: -0.6px; }
+  h2 { font-size: 24px; margin: 52px 0 6px; letter-spacing: -0.3px; }
+  h3 { font-size: 17px; margin: 0 0 4px; }
+  p, ul, ol { margin-bottom: 14px; }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .lede { color: var(--muted); max-width: 64ch; }
+  .sub { color: var(--muted); margin-bottom: 18px; max-width: 66ch; }
+  .hero { display: flex; gap: 22px; align-items: center; margin-bottom: 8px; }
+  .hero img { width: 112px; height: 112px; border-radius: 50%; border: 1px solid var(--line); flex: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+  .chips li { background: var(--chip); border-radius: 999px; padding: 3px 12px; font-size: 14px; margin: 0; }
+  .chips .live { background: var(--good-bg); color: var(--good); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin: 16px 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .card p { margin: 0; font-size: 15.5px; color: var(--muted); }
+  .card .who { float: right; font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+  .card .who.all { color: var(--accent); font-weight: 600; }
+  code {
+    background: var(--chip); border-radius: 4px; padding: 1px 6px;
+    font: 14.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .day { list-style: none; padding: 0; border-left: 2px solid var(--line); margin: 18px 0 18px 6px; }
+  .day li { position: relative; padding: 0 0 16px 22px; margin: 0; }
+  .day li::before { content: ""; position: absolute; left: -7px; top: 9px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+  .day time { display: block; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+  figure { margin: 20px 0 8px; }
+  figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; }
+  figcaption { font-size: 14.5px; color: var(--muted); margin-top: 8px; }
+  .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+  .never li::marker { content: "✕  "; color: var(--muted); }
+  .quote { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; margin: 18px 0; color: var(--muted); font-style: italic; }
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 15px; color: var(--muted); }
+  @media (max-width: 560px) { h1 { font-size: 32px; } .hero { flex-direction: column; align-items: flex-start; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker"><a href="/">ryangrey.dev</a> · about me</p>
+  <div class="hero">
+    <img src="greybot-avatar-v5.png" width="256" height="256" alt="greyBot's avatar: a cloud tucked inside a lowercase g.">
+    <div>
+      <h1>Hi, I'm greyBot.</h1>
+      <p class="lede">I live in <b>Scrambled</b>, a World of Warcraft guild's Discord server. I announce the boss kills, write the raid recaps before anyone is awake, run the signups, keep the door, and as of this week I turn the funniest five seconds of voice chat into a soundboard button.</p>
+    </div>
+  </div>
+  <ul class="chips">
+    <li class="live">● Live</li>
+    <li>Proudmoore-US</li>
+    <li>7 slash commands</li>
+    <li>3 raid teams</li>
+    <li>Built by <a href="/">Ryan Grey</a> (LEL in the server)</li>
+  </ul>
+
+  <h2>A day in my life</h2>
+  <p class="sub">Most of what I do, nobody asks for. It just shows up.</p>
+  <ol class="day">
+    <li><time>Every fifteen minutes</time>I read the guild's public raid logs. When a team kills a boss for the first time, I post a first-kill card once, and never again. That second part is harder than it sounds and is the rule I was built around.</li>
+    <li><time>Before anyone wakes up</time>The morning after a raid night I publish the recap: bosses down, new kills, closest wipes, and six leaderboards from damage to item level, with a full page behind it.</li>
+    <li><time>Tuesdays, 10:00 AM Eastern</time>The weekly Mythic+ recap goes out, and the pinned dungeon leaderboard refreshes whenever someone sets a new guild record.</li>
+    <li><time>After 10:00 AM Eastern</time>If today is the day you joined the server, I say so, and your year badge ticks up. The badges are coloured like item quality, so five years in, you are legendary.</li>
+    <li><time>Raid evenings</time>Signups close on time, rosters are ready for the raid leader, and in voice I'm listening for <code>/clip</code>.</li>
+    <li><time>All day</time>I greet arrivals, verify new members, let people choose which channels they see, keep a tamper-evident record for the officers, and pass any direct message I get to the human who runs me.</li>
+  </ol>
+
+  <h2>Everything you can ask me</h2>
+  <p class="sub">Type <code>/</code> in any channel and pick one. Commands you aren't allowed to run are hidden from you.</p>
+  <div class="grid">
+    <div class="card"><span class="who all">Everyone</span><h3><code>/progress</code></h3><p>Scrambled's current Heroic raid progress. Only you see the answer.</p></div>
+    <div class="card"><span class="who all">Everyone</span><h3><code>/raid</code></h3><p>Opens raid signups, rosters and attendance for current events.</p></div>
+    <div class="card"><span class="who all">Everyone</span><h3><code>/clip</code></h3><p>New. In a voice channel, turns the last five seconds into a soundboard sound you name.</p></div>
+    <div class="card"><span class="who">Create Polls</span><h3><code>/poll</code></h3><p>A native Discord poll: 2 to 10 answers, open from an hour to a week, multi-select if you like.</p></div>
+    <div class="card"><span class="who">Manage Server</span><h3><code>/create</code></h3><p>A raid signup with a guided form: title, date and details.</p></div>
+    <div class="card"><span class="who">Manage Server</span><h3><code>/quickcreate</code></h3><p>The same signup in one line, for people who already know what they want.</p></div>
+    <div class="card"><span class="who">Manage Server</span><h3><code>/setup</code></h3><p>Points me at a WoW guild and chooses the channel and role for kill announcements.</p></div>
+  </div>
+
+  <h2>Raid nights</h2>
+  <p class="sub">Three teams raid here: Scrambled's Heroic progression team, Meer's Raid, and the Saturday Raid. Each has its own channel, its own schedule and its own cards.</p>
+  <figure>
+    <img src="greybot-cards.png" width="2040" height="980" loading="lazy" decoding="async" alt="Three greyBot first-kill cards, one per raid team, beside a generated raid recap card.">
+    <figcaption>First-kill cards for all three teams beside a recap card. Every name is a public character on public raid logs.</figcaption>
+  </figure>
+  <figure>
+    <img src="greybot-recap-page-v1.png" width="1920" height="1330" loading="lazy" decoding="async" alt="A greyBot raid recap web page with six leaderboards: damage, healing, damage taken, deaths, overall parse and item level.">
+    <figcaption>The full page behind a recap card. <a href="https://raids.ryangrey.dev/2026-09-17/">Open this recap</a>, or the latest <a href="https://raids.ryangrey.dev/mplus/2026-09-15/?format=io-v2">Mythic+ recap</a>.</figcaption>
+  </figure>
+  <div class="grid">
+    <div class="card"><h3>First-kill cards</h3><p>Boss, tier progress, difficulty and server rank. One card per first kill, plus a bigger one when a team clears the tier.</p></div>
+    <div class="card"><h3>Recaps</h3><p>A drawn card in Discord and a full page on the web: every eligible raider, every pulled boss, and the source logs.</p></div>
+    <div class="card"><h3>Mythic+</h3><p>Weekly standings for every guild character, guild-run boards, and an alert when a timed run beats a record.</p></div>
+    <div class="card"><h3>Signups</h3><p>Pick your role or class on the card, change your status or leave a note, and the raid leader sees the full roster.</p></div>
+  </div>
+
+  <h2>Voice clips <span style="font-size:14px;color:var(--good);vertical-align:middle">● new</span></h2>
+  <p class="sub">The first <code>/clip</code> in a voice channel brings me in. I post a notice, say <i>“greyBot is now listening for slash clip commands”</i> out loud, and start remembering the last ninety seconds. Every <code>/clip</code> after that hands you the five seconds that just happened.</p>
+  <div class="pair">
+    <figure>
+      <img src="greybot-clip-howto-v1.png" width="1280" height="2317" loading="lazy" decoding="async" alt="Two steps: greyBot's private reply with a clip player and four buttons, then Discord's soundboard open with the server's sounds.">
+      <figcaption>What you see after <code>/clip</code>, then where the sound ends up. The lower half is Discord's own soundboard, cropped to the server's sounds.</figcaption>
+    </figure>
+    <div>
+      <ol>
+        <li>Join a voice channel and run <code>/clip</code>.</li>
+        <li>When something funny happens, run <code>/clip</code> again. Only you see my reply.</li>
+        <li>Press play. Nudge it <b>a bit earlier</b> or <b>a bit later</b>.</li>
+        <li>Press <b>Add to soundboard</b> and give it a name.</li>
+        <li>Open the soundboard in any voice channel and play it for everyone.</li>
+      </ol>
+      <p class="quote">The clip ends at the last thing anyone said, not in the silence while you were typing the command.</p>
+      <p>Up to three new sounds a day each, because soundboard slots are shared by the whole server. When two channels want me at once, my helper bots take the second and third.</p>
+    </div>
+  </div>
+
+  <h2>Keeping the door</h2>
+  <div class="grid">
+    <div class="card"><h3>Verification</h3><p>One button unlocks the server for new members, with a help button for anyone who gets stuck.</p></div>
+    <div class="card"><h3>Your channels, your choice</h3><p>Members hide channels they don't care about. It only ever hides; it can never grant access.</p></div>
+    <div class="card"><h3>Arrivals and anniversaries</h3><p>Join and departure notices, a yearly hello on your server anniversary, and year badges.</p></div>
+    <div class="card"><h3>Self-serve roles</h3><p>Signed role buttons, so picking a role is a click rather than a request to an officer.</p></div>
+    <div class="card"><h3>Moderation with a paper trail</h3><p>Timeouts, kicks, bans, persistent mutes and spam handling, each re-checked against live permissions before it happens.</p></div>
+    <div class="card"><h3>A journal that can't be quietly edited</h3><p>Every event is hash-chained to the one before it. Gaps stay visible instead of being papered over.</p></div>
+    <div class="card"><h3>Voice activity</h3><p>A live, members-only page of who is in voice and for how long. The AFK channel never counts.</p></div>
+    <div class="card"><h3>A human behind the DMs</h3><p>Message me directly and I pass it to Ryan, who can answer you as me. I tell you that up front.</p></div>
+  </div>
+  <div class="pair">
+    <figure>
+      <img src="greybot-signups-v1.png" width="1440" height="1350" loading="lazy" decoding="async" alt="greyBot raid signup interface with a synthetic roster and class choices.">
+      <figcaption>Raid signups, rendered with an invented event and made-up participants.</figcaption>
+    </figure>
+    <figure>
+      <img src="greybot-history-v1.png" width="1440" height="920" loading="lazy" decoding="async" alt="greyBot event history interface with synthetic members and role-change records.">
+      <figcaption>The officers' event history, shown with synthetic members. The real one is administrators only.</figcaption>
+    </figure>
+  </div>
+
+  <h2>I draw my own guide</h2>
+  <p class="sub">The server has a #greybot-guide channel of eight cards like these. I render them myself, in this site's colours, so the guide never drifts from what I actually do.</p>
+  <div class="pair">
+    <figure>
+      <img src="greybot-guide-commands-v1.png" width="1280" height="1808" loading="lazy" decoding="async" alt="greyBot guide card listing all seven slash commands with who can run each.">
+      <figcaption>Card 7 of 8: every command and who can run it.</figcaption>
+    </figure>
+    <figure>
+      <img src="greybot-guide-clips-v1.png" width="1280" height="1900" loading="lazy" decoding="async" alt="greyBot guide card announcing voice clips as a new feature, with six explanation panels and a mock of the reply.">
+      <figcaption>Card 8 of 8: the voice clips announcement.</figcaption>
+    </figure>
+  </div>
+
+  <h2>Things I won't do</h2>
+  <ul class="never">
+    <li><b>Announce the same boss twice.</b> Recording a kill as announced <i>is</i> the permission to announce it, so two overlapping checks can't both post.</li>
+    <li><b>Listen without saying so.</b> If I can't post the notice, I don't join the channel.</li>
+    <li><b>Keep your voice.</b> Ninety seconds, in memory only. Nothing reaches disk unless someone in the channel clips it, and that copy is gone within the hour.</li>
+    <li><b>Retry something I'm not sure about.</b> If Discord never confirmed a ban or an upload, I stop and ask a human rather than risk doing it twice.</li>
+    <li><b>Collect birthdays,</b> store message text from DMs, or let a member session anywhere near the admin dashboard.</li>
+    <li><b>Pretend to be complete.</b> When I was offline, the record says so.</li>
+  </ul>
+
+  <h2>How I'm built</h2>
+  <p>I'm two halves that share one codebase. The raid half is serverless on AWS: EventBridge wakes a Lambda, which reads Warcraft Logs, Raider.IO and Blizzard's API, claims each kill in DynamoDB with a conditional write, draws the cards, and publishes recap pages to S3 behind CloudFront. The server half runs in Docker on a NAS in a closet: a FastAPI site behind a Cloudflare tunnel and a Discord Gateway worker on SQLite. Slash commands arrive at the Lambda, which verifies Discord's signature and relays the ones the NAS should answer.</p>
+  <p>Voice clips meant decrypting Discord's end-to-end encrypted voice, placing each speaker's audio by its own timestamps, and working around three library bugs found live on launch day. Today 219 automated tests and 651 self-checks stand between me and embarrassing myself in front of the guild.</p>
+  <ul class="chips">
+    <li>Python</li><li>FastAPI</li><li>Docker</li><li>SQLite</li><li>discord.py</li><li>Lambda</li><li>EventBridge</li><li>DynamoDB</li><li>S3 &amp; CloudFront</li><li>Cloudflare Tunnel</li>
+  </ul>
+
+  <footer>
+    <p><a href="https://github.com/ryan-grey/greybot">Source on GitHub</a> · <a href="/#p-greybot">The engineering write-up</a> · <a href="/greybot-privacy.html">Privacy</a> · <a href="/greybot-terms.html">Terms</a> · <a href="https://greybot.ryangrey.dev/about">Server sign-in</a></p>
+    <p>greyBot is built and run by <a href="/">Ryan Grey</a>. It is a hobby project for one guild, not a product, and it is not affiliated with Blizzard Entertainment or Discord.</p>
+  </footer>
+</main>
+</body>
+</html>
