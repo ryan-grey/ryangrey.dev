@@ -69,6 +69,16 @@
   figcaption { font-size: 14.5px; color: var(--muted); margin-top: 8px; }
   .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; align-items: start; }
   .never li::marker { content: "✕  "; color: var(--muted); }
+  /* @LEL as it reads in Discord: profile picture, then the name in block letters. */
+  .lel { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; vertical-align: -4px; text-decoration: none; }
+  .lel:hover { text-decoration: none; opacity: .85; }
+  .lel img { width: 20px; height: 20px; border-radius: 50%; margin-right: 3px; }
+  .lel .at { color: var(--muted); font-weight: 600; }
+  .lel b {
+    display: inline-block; width: 1.25em; height: 1.25em; line-height: 1.25em; text-align: center;
+    font: 800 13px/1.25em -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--ink); color: var(--bg); border-radius: 3px;
+  }
   .quote { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; margin: 18px 0; color: var(--muted); font-style: italic; }
   footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 15px; color: var(--muted); }
   @media (max-width: 560px) { h1 { font-size: 32px; } .hero { flex-direction: column; align-items: flex-start; } }
@@ -89,7 +99,7 @@
     <li>Proudmoore-US</li>
     <li>7 slash commands</li>
     <li>3 raid teams</li>
-    <li>Built by <a href="/">Ryan Grey</a> (LEL in the server)</li>
+    <li>Built by <a class="lel" href="/" aria-label="LEL"><img src="lel-avatar-v1.png" width="128" height="128" alt=""><span class="at">@</span><b>L</b><b>E</b><b>L</b></a></li>
   </ul>
 
   <h2>A day in my life</h2>
@@ -161,7 +171,7 @@
     <div class="card"><h3>Moderation with a paper trail</h3><p>Timeouts, kicks, bans, persistent mutes and spam handling, each re-checked against live permissions before it happens.</p></div>
     <div class="card"><h3>A journal that can't be quietly edited</h3><p>Every event is hash-chained to the one before it. Gaps stay visible instead of being papered over.</p></div>
     <div class="card"><h3>Voice activity</h3><p>A live, members-only page of who is in voice and for how long. The AFK channel never counts.</p></div>
-    <div class="card"><h3>A human behind the DMs</h3><p>Message me directly and I pass it to Ryan, who can answer you as me. I tell you that up front.</p></div>
+    <div class="card"><h3>A human behind the DMs</h3><p>Message me directly and I pass it to <a class="lel" href="/" aria-label="LEL"><img src="lel-avatar-v1.png" width="128" height="128" alt=""><span class="at">@</span><b>L</b><b>E</b><b>L</b></a>, who can answer you as me. I tell you that up front.</p></div>
   </div>
   <div class="pair">
     <figure>
@@ -206,7 +216,7 @@
 
   <footer>
     <p><a href="https://github.com/ryan-grey/greybot">Source on GitHub</a> · <a href="/#p-greybot">The engineering write-up</a> · <a href="/greybot-privacy.html">Privacy</a> · <a href="/greybot-terms.html">Terms</a> · <a href="https://greybot.ryangrey.dev/about">Server sign-in</a></p>
-    <p>greyBot is built and run by <a href="/">Ryan Grey</a>. It is a hobby project for one guild, not a product, and it is not affiliated with Blizzard Entertainment or Discord.</p>
+    <p>greyBot is built and run by <a class="lel" href="/" aria-label="LEL"><img src="lel-avatar-v1.png" width="128" height="128" alt=""><span class="at">@</span><b>L</b><b>E</b><b>L</b></a>. It is a hobby project for one guild, not a product, and it is not affiliated with Blizzard Entertainment or Discord.</p>
   </footer>
 </main>
 </body>
