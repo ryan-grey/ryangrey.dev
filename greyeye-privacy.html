@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>greyEye — Privacy Policy</title>
+<meta name="description" content="What the greyEye camera app stores, where the video goes, and how Google account data is used.">
+<meta name="robots" content="index, follow">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" href="/favicon-v5.ico" type="image/vnd.microsoft.icon" sizes="16x16 32x32 48x48 64x64 128x128 256x256">
+<link rel="icon" href="/favicon-v5.png" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/favicon-v5.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon-v5.png" sizes="180x180">
+<style>
+  :root {
+    --bg: #fafaf8; --ink: #1c1e21; --muted: #5c6470; --line: #e3e1dc;
+    --accent: #1d5fa0; --accent-ink: #174a7e; --card: #ffffff; --chip: #eef2f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --ink: #e8e6e3; --muted: #9aa3af; --line: #262b33;
+      --accent: #6aa8e0; --accent-ink: #8dbceb; --card: #191d24; --chip: #212832;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 22px 80px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .kicker { font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 38px; line-height: 1.15; margin: 6px 0 10px; letter-spacing: -0.5px; }
+  h2 { font-size: 21px; margin: 34px 0 10px; letter-spacing: -0.2px; }
+  p, ul { margin-bottom: 14px; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .lede { color: var(--muted); max-width: 62ch; }
+  .updated { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin: 18px 0;
+  }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  code {
+    background: var(--chip); border-radius: 4px; padding: 1px 6px;
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  footer {
+    margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line);
+    font-size: 15px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">greyEye</p>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated 30 September 2026</p>
+
+  <p class="lede" style="margin-top:16px">
+    greyEye is an iPhone and iPad app that shows the live view of Ryan Grey's own Google
+    Nest cameras to the people he gives a passcode to. It is operated by Ryan Grey. This
+    page describes exactly what it stores, where the video goes, and how it uses Google
+    account data.
+  </p>
+
+  <div class="card">
+    <p><strong>The short version.</strong> greyEye has no accounts, no analytics, no ads and
+    no tracking. It does not record or keep any video. The live picture goes straight from
+    Google to your phone, and the only thing the app remembers is the passcode you typed.</p>
+  </div>
+
+  <h2>What it stores</h2>
+  <ul>
+    <li><strong>On your device</strong> — the passcode, in the iOS Keychain, so you do not
+      have to type it again. Choosing <em>Lock greyEye</em> in the app deletes it.</li>
+    <li><strong>On the greyEye server</strong> (Amazon Web Services) — the shared passcode,
+      and the Google sign-in credentials for the camera owner's own account, both encrypted
+      at rest. Nothing about the people using the app is stored there.</li>
+    <li><strong>Operational logs</strong> — short error records such as a request path and
+      a status code, used to fix problems and deleted after 14 days. They contain no video,
+      no passcodes and no Google credentials.</li>
+  </ul>
+
+  <h2>What it does not store</h2>
+  <ul>
+    <li>Video, still images or audio. The app plays the live stream and keeps nothing.</li>
+    <li>Your name, email address, contacts, location or any other personal information.
+      greyEye never asks for them.</li>
+    <li>Microphone input. The app never records sound; camera audio is muted.</li>
+  </ul>
+
+  <h2>Where the video goes</h2>
+  <p>
+    When you open greyEye, the server asks Google for a live stream on your phone's behalf
+    and hands your phone the connection details. The video itself then travels directly
+    from Google to your device over an encrypted WebRTC connection; it never passes through
+    the greyEye server. Streams stop when you leave the app. Google processes the camera
+    video under the <a href="https://policies.google.com/privacy" rel="noopener">Google
+    Privacy Policy</a>.
+  </p>
+
+  <h2>Google user data</h2>
+  <p>
+    greyEye connects to exactly one Google account: the camera owner's. It uses Google's
+    Smart Device Management API (the <code>sdm.service</code> scope) only to list that
+    account's cameras and to open, extend and stop their live streams. That data is used
+    only to show the live view in the app. It is never sold, never shared with anyone
+    else, never used for advertising, and never used to train models.
+  </p>
+  <p>
+    greyEye's use and transfer of information received from Google APIs adheres to the
+    <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Google
+    API Services User Data Policy</a>, including the Limited Use requirements. The camera
+    owner can revoke greyEye's access at any time from
+    <a href="https://nestservices.google.com/partnerconnections" rel="noopener">Google Nest
+    partner connections</a>.
+  </p>
+
+  <h2>Who can see it</h2>
+  <p>
+    Only people who have the current passcode can see the cameras. The camera owner can
+    change the passcode at any time, which signs everyone out within a few minutes.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    greyEye does not collect personal information from anyone, including children.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If what the app stores changes, this page changes with it, and the date at the top is
+    updated.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions or requests:
+    <a href="mailto:ryan@ryangrey.dev">ryan@ryangrey.dev</a>.
+  </p>
+
+  <footer>
+    <a href="/">ryangrey.dev</a>
+  </footer>
+</main>
+</body>
+</html>
