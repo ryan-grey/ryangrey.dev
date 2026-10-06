@@ -24,7 +24,7 @@ REGION="us-east-1"
 DOMAIN="ryangrey.dev"
 ZONE_ID="Z07179132S16E6LFL8S10"
 SENDER="alerts@${DOMAIN}"
-RECIPIENT="${RECIPIENT:-rgrey.web@gmail.com}"
+RECIPIENT="${RECIPIENT:-ryangrey.dev@gmail.com}"
 # Resolved from the active credentials so no account ID lives in the repo.
 TOPIC_ARN="arn:aws:sns:us-east-1:$(aws sts get-caller-identity --query Account --output text):ryangrey-dev-alerts"
 FN_NAME="ryangrey-alert-forwarder"
