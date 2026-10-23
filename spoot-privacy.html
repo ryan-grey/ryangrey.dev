@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spoot — Privacy Policy</title>
+<link rel="canonical" href="https://ryangrey.dev/spoot-privacy.html">
+<meta name="description" content="What data the spoot Discord app stores, where it comes from, and how long it is kept.">
+<meta name="robots" content="index, follow">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" href="/favicon-v5.ico" type="image/vnd.microsoft.icon" sizes="16x16 32x32 48x48 64x64 128x128 256x256">
+<link rel="icon" href="/favicon-v5.png" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/favicon-v5.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon-v5.png" sizes="180x180">
+<style>
+  :root {
+    --bg: #fafaf8; --ink: #1c1e21; --muted: #5c6470; --line: #e3e1dc;
+    --accent: #1d5fa0; --accent-ink: #174a7e; --card: #ffffff; --chip: #eef2f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --ink: #e8e6e3; --muted: #9aa3af; --line: #262b33;
+      --accent: #6aa8e0; --accent-ink: #8dbceb; --card: #191d24; --chip: #212832;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 22px 80px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .kicker { font-size: 14px; letter-spacing: 2.5px; text-transform: none; color: var(--muted); }
+  h1 { font-size: 38px; line-height: 1.15; margin: 6px 0 10px; letter-spacing: -0.5px; }
+  h2 { font-size: 21px; margin: 34px 0 10px; letter-spacing: -0.2px; }
+  p, ul { margin-bottom: 14px; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .lede { color: var(--muted); max-width: 62ch; }
+  .updated { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin: 18px 0;
+  }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  code {
+    background: var(--chip); border-radius: 4px; padding: 1px 6px;
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  footer {
+    margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line);
+    font-size: 15px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">spoot</p>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated 8 September 2026</p>
+
+  <p class="lede" style="margin-top:16px">
+    spoot is a Discord app that announces a World of Warcraft guild's first Heroic boss
+    kills and posts a summary of raid nights. It is operated by Ryan Grey. This page
+    describes exactly what it stores, where that data comes from, and how long it is kept.
+  </p>
+
+  <div class="card">
+    <p><strong>The short version.</strong> spoot supports raid announcements and server
+    administration. It stores public raid data and, for servers using the control service,
+    Discord member profiles, server events, moderation records and enabled message history.
+    The administration website requires current server administrator access.</p>
+  </div>
+
+  <h2>What it stores</h2>
+  <ul>
+    <li><strong>World of Warcraft character names</strong>, read from public Warcraft Logs
+      reports. These are used to record who took part in a guild's first kill of a boss,
+      and to work out which of the guild's raid teams filed a given report.</li>
+    <li><strong>Raid progress state</strong> — which bosses have been announced, how many
+      are dead, and whether the tier's Ahead of the Curve has been posted. This is what
+      stops the same kill being announced twice.</li>
+    <li><strong>Operational state</strong> — timestamps, raid and boss identifiers, and a
+      record of whether the app can still reach Discord.</li>
+    <li><strong>Server records</strong> — Discord member, role and channel identifiers;
+      cached server nicknames and avatar URLs; joins, departures and supported audit changes;
+      settings, administrative sign-ins and moderation requests and results.</li>
+    <li><strong>Optional message history</strong> — captured server message text and observed
+      edit/deletion versions in the private local index. Coverage depends on the bot's
+      access and connection history; unseen or previously deleted messages cannot be recovered.</li>
+    <li><strong>Verification records</strong> — the member requesting verification, the
+      requested role and the result. Short-lived website sessions identify the signed-in
+      member; member-verification sessions do not grant administrator access.</li>
+  </ul>
+
+  <h2>What it does not store</h2>
+  <ul>
+    <li>The control collector does not import direct messages or records from other servers.</li>
+    <li>Discord OAuth access tokens and verification challenge tokens are not retained
+      in the event journal. Credentials used to operate the service are kept separately.</li>
+    <li>The metadata journal excludes message text, attachments, invite codes and arbitrary
+      Discord audit reasons. Enabled message text is held in a separate private index.</li>
+    <li>The application does not request payment information or sell server records.</li>
+  </ul>
+
+  <h2>Where the data comes from</h2>
+  <p>
+    The raid service queries
+    <a href="https://www.warcraftlogs.com/" rel="noopener">Warcraft Logs</a> for which
+    bosses died and when, <a href="https://raider.io/" rel="noopener">Raider.IO</a> for
+    guild progress and realm rank, and Blizzard's public game data API for boss artwork.
+    Discord supplies server events and member information according to the bot's permissions.
+    Announcements are sent as spoot to configured channels; full raid scorecards are
+    published separately on <a href="https://raids.ryangrey.dev/">the raid website</a>.
+    Discord provides sign-in, and Cloudflare Turnstile processes human-verification
+    challenges. Hosting and verification providers may process connection information
+    under their own privacy policies.
+  </p>
+
+  <h2>How long it is kept</h2>
+  <p>
+    Raid state and character names are kept for as long as the app runs for that guild,
+    because the whole purpose of the record is to remember that a boss was already
+    announced. There is no automatic expiry for raid state or the current local server
+    archive. The application prevents editing archived events; the NAS owner retains
+    recovery and removal authority. Contact the server administrators or the developer
+    below about access, corrections or removal of stored server data.
+  </p>
+
+  <h2>Who can see it</h2>
+  <p>
+    Raid state is held in private AWS storage; published raid scorecards can be read by
+    anyone with their URLs. Server history and moderation records are held on the
+    operator's private NAS and available to current server administrators through the
+    authenticated dashboard. Configured Discord audit channels may show selected changes
+    and captured message text to members who can view those channels. The full private
+    event history is independent of those posting filters.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    spoot is intended for users who meet Discord's minimum age requirements and their
+    server's membership rules. It does not ask members to provide their date of birth.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If what the app stores changes, this page changes with it, and the date at the top is
+    updated.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions, or a request to delete a guild's data:
+    <a href="mailto:ryangrey.dev@gmail.com">ryangrey.dev@gmail.com</a>.
+  </p>
+
+  <footer>
+    <a href="/">ryangrey.dev</a> &middot;
+    <a href="/spoot-terms.html">spoot Terms of Service</a>
+  </footer>
+</main>
+</body>
+</html>

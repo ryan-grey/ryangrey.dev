@@ -40,6 +40,9 @@ jobs:
       - name: Check stack manifest against the chip row
         run: python3 infra/check-stack-drift.py --readme
 
+      - name: Check legacy spoot URL compatibility
+        run: node --test infra/test-brand-redirects.cjs
+
       - name: Check resume compatibility copy
         run: cmp Ryan_Grey_Resume.pdf ryan-grey-cv.pdf
 
@@ -88,7 +91,7 @@ jobs:
       - name: Set the cache headers that differ from the default
         run: |
           # HTML must revalidate on every view, or a deploy stays invisible for an hour.
-          for f in index.html; do
+          for f in *.html; do
             aws s3 cp "$f" "s3://ryangrey.dev/$f" \
               --content-type "text/html" \
               --cache-control "public, max-age=0, must-revalidate" >/dev/null

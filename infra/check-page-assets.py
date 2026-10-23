@@ -8,7 +8,7 @@ import urllib.error
 import urllib.request
 from urllib.parse import urljoin
 
-PAGES = ["/", "/404.html", "/greybot-terms.html", "/greybot-privacy.html"]
+PAGES = ["/", "/404.html", "/spoot-terms.html", "/spoot-privacy.html"]
 
 ASSET = re.compile(r'<(?:script|link|img)\b[^>]*?\b(?:src|href)\s*=\s*"([^"]+)"', re.I)
 OG_IMAGE = re.compile(r'<meta\b[^>]*?property="og:image"[^>]*?content="([^"]+)"', re.I)

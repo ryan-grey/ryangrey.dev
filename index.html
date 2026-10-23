@@ -135,7 +135,7 @@
   html:has(#p-pipeline:target)   .sidenav a[href="#p-pipeline"],
   html:has(#p-greyscale:target)  .sidenav a[href="#p-greyscale"],
   html:has(#p-watchtower:target) .sidenav a[href="#p-watchtower"],
-  html:has(#p-greybot:target)    .sidenav a[href="#p-greybot"],
+  html:has(#p-spoot:target)    .sidenav a[href="#p-spoot"],
   html:has(#p-mcp-clients:target) .sidenav a[href="#p-mcp-clients"],
   html:has(#p-imessage:target)   .sidenav a[href="#p-imessage"] {
     background: var(--selected); font-weight: 600;
@@ -151,7 +151,7 @@
   html:has(#p-pipeline:target)   .sidenav a[href="#p-pipeline"]::before,
   html:has(#p-greyscale:target)  .sidenav a[href="#p-greyscale"]::before,
   html:has(#p-watchtower:target) .sidenav a[href="#p-watchtower"]::before,
-  html:has(#p-greybot:target)    .sidenav a[href="#p-greybot"]::before,
+  html:has(#p-spoot:target)    .sidenav a[href="#p-spoot"]::before,
   html:has(#p-mcp-clients:target) .sidenav a[href="#p-mcp-clients"]::before,
   html:has(#p-imessage:target)   .sidenav a[href="#p-imessage"]::before {
     content: ""; position: absolute; left: -8px; top: 7px; bottom: 7px;
@@ -336,7 +336,7 @@
     <a href="#p-pipeline">Delivery &amp; Monitoring</a>
     <a href="#p-greyscale">GreyScale</a>
     <a href="#p-watchtower">Cloud Watchtower</a>
-    <a href="#p-greybot">spoot</a>
+    <a href="#p-spoot">spoot</a>
     <a href="#p-mcp-clients">Multi-Client MCP</a>
     <a href="#p-imessage">imessage-mcp</a>
     <a href="#p-discord">discord-mcp</a>
@@ -498,10 +498,11 @@
       <div class="stack"><span>Swift</span><span>SwiftUI</span><span>macOS</span><span>CloudWatch</span><span>Cost Explorer</span><span>IAM &amp; STS</span><span>AWS SigV4</span></div>
     </div>
 
-    <div class="project" id="p-greybot">
+    <span id="p-greybot" aria-hidden="true"></span>
+    <div class="project" id="p-spoot">
       <span class="status live">Live</span>
       <h3>spoot &mdash; Discord Administration &amp; Raid Operations</h3>
-      <div class="meta"><a href="/greybot.html">Meet spoot</a> &middot; <a href="https://github.com/ryan-grey/greybot">Source &amp; releases</a></div>
+      <div class="meta"><a href="/spoot.html">Meet spoot</a> &middot; <a href="https://github.com/ryan-grey/spoot">Source &amp; releases</a></div>
       <p>Built a Discord operations platform spanning server administration, moderation, member verification, raid signups and searchable guild history. Persistent Docker services run the administrator website and event collector, while AWS Lambda and EventBridge handle raid announcements and recap generation for three teams.</p>
       <ul class="caps">
         <li><b>Authorization on every private request</b> &mdash; Discord OAuth identifies the administrator, then live guild permissions determine access. Moderation requests recheck permissions and role hierarchy; session, CSRF and origin checks protect the web controls</li>

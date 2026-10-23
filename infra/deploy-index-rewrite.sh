@@ -15,7 +15,7 @@ set -euo pipefail
 FN_NAME="ryangrey-index-rewrite"
 SRC="$(dirname "$0")/cloudfront-index-rewrite.js"
 RUNTIME="cloudfront-js-2.0"
-COMMENT="Rewrites directory URIs to index.html"
+COMMENT="Rewrites directory indexes and preserves legacy spoot links"
 
 : "${DISTRIBUTION_ID:?Set DISTRIBUTION_ID=... before running}"
 [ -f "$SRC" ] || { echo "missing $SRC" >&2; exit 1; }
@@ -55,7 +55,7 @@ JSON
   GOT="$(aws cloudfront test-function --name "$FN_NAME" --if-match "$ETAG" \
     --stage DEVELOPMENT --event-object fileb:///tmp/idx-event.json \
     --query 'TestResult.FunctionOutput' --output text \
-    | python3 -c 'import sys,json; print(json.load(sys.stdin)["request"]["uri"])')"
+    | python3 -c 'import sys,json; r=json.load(sys.stdin); print(r["request"]["uri"] if "request" in r else str(r["response"]["statusCode"])+":"+r["response"]["headers"]["location"]["value"])')"
   if [ "$GOT" = "$WANT" ]; then
     echo "      ok   ${IN} -> ${GOT}"
   else
@@ -70,6 +70,10 @@ done <<'CASES'
 /ryan-grey-cv.pdf|/ryan-grey-cv.pdf
 /Ryan_Grey_Resume.pdf|/Ryan_Grey_Resume.pdf
 /section/app.js|/section/app.js
+/greybot.html|301:/spoot.html
+/greybot-privacy.html|301:/spoot-privacy.html
+/greybot-terms.html|301:/spoot-terms.html
+/spoot.html|/spoot.html
 CASES
 rm -f /tmp/idx-event.json
 [ "$FAIL" -eq 0 ] || { echo "Refusing to publish: rewrite contract broken." >&2; exit 1; }
