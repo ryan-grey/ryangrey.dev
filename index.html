@@ -336,7 +336,7 @@
     <a href="#p-pipeline">Delivery &amp; Monitoring</a>
     <a href="#p-greyscale">GreyScale</a>
     <a href="#p-watchtower">Cloud Watchtower</a>
-    <a href="#p-greybot">greyBot</a>
+    <a href="#p-greybot">spoot</a>
     <a href="#p-mcp-clients">Multi-Client MCP</a>
     <a href="#p-imessage">imessage-mcp</a>
     <a href="#p-discord">discord-mcp</a>
@@ -500,8 +500,8 @@
 
     <div class="project" id="p-greybot">
       <span class="status live">Live</span>
-      <h3>greyBot &mdash; Discord Administration &amp; Raid Operations</h3>
-      <div class="meta"><a href="/greybot.html">Meet greyBot</a> &middot; <a href="https://github.com/ryan-grey/greybot">Source &amp; releases</a></div>
+      <h3>spoot &mdash; Discord Administration &amp; Raid Operations</h3>
+      <div class="meta"><a href="/greybot.html">Meet spoot</a> &middot; <a href="https://github.com/ryan-grey/greybot">Source &amp; releases</a></div>
       <p>Built a Discord operations platform spanning server administration, moderation, member verification, raid signups and searchable guild history. Persistent Docker services run the administrator website and event collector, while AWS Lambda and EventBridge handle raid announcements and recap generation for three teams.</p>
       <ul class="caps">
         <li><b>Authorization on every private request</b> &mdash; Discord OAuth identifies the administrator, then live guild permissions determine access. Moderation requests recheck permissions and role hierarchy; session, CSRF and origin checks protect the web controls</li>
@@ -513,17 +513,17 @@
       <p class="outcome">Deployed as a hybrid Docker and AWS application, with regression checks for authorization, history handling, local integrations and raid reporting. Public project information is separate from the administrator-only dashboard; automation settings and event coverage are tracked explicitly.</p>
       <figure class="shot">
         <img src="greybot-history-v1.png" width="1440" height="920" loading="lazy" decoding="async"
-             alt="greyBot event history interface with synthetic members River and Sky, role-change records, filters and journal status.">
+             alt="spoot event history interface with synthetic members River and Sky, role-change records, filters and journal status.">
         <figcaption>Event history in the actual administrator interface, rendered locally with synthetic members and events. Observe-only mode and the unconfigured archive shown here belong to the isolated demo, not the production server. <a href="greybot-history-v1.png">View full-size screenshot</a>.</figcaption>
       </figure>
       <figure class="shot">
         <img src="greybot-signups-v1.png" width="1440" height="1350" loading="lazy" decoding="async"
-             alt="greyBot raid signup interface showing a synthetic roster, class and specialization choices, attendance controls and organizer actions.">
+             alt="spoot raid signup interface showing a synthetic roster, class and specialization choices, attendance controls and organizer actions.">
         <figcaption>Raid signup controls and roster, rendered from the application with an invented event and synthetic participants. No private server messages or real member profiles are shown. <a href="greybot-signups-v1.png">View full-size screenshot</a>.</figcaption>
       </figure>
       <figure class="shot">
         <img src="greybot-cards.png" width="2040" height="980" loading="lazy" decoding="async"
-             alt="Three greyBot first-kill cards beside a generated raid recap with damage, healing and performance summaries.">
+             alt="Three spoot first-kill cards beside a generated raid recap with damage, healing and performance summaries.">
         <figcaption>The existing raid reporting workflow: generated first-kill cards and a nightly recap, using public raid-log data.</figcaption>
       </figure>
       <div class="stack"><span>Python &amp; FastAPI</span><span>Docker</span><span>SQLite</span><span>Discord OAuth &amp; Gateway</span><span>Lambda</span><span>EventBridge</span><span>DynamoDB</span><span>S3 &amp; CloudFront</span><span>MCP</span></div>
