@@ -160,6 +160,9 @@ jobs:
           diff -q /tmp/live.html index.html \
             && echo "Live site matches committed index.html" \
             || { echo "Live site does not match repo"; exit 1; }
+          curl --fail --silent --show-error --connect-timeout 15 --max-time 25 \
+            https://ryangrey.dev/spoot.html -o /tmp/live-spoot.html
+          cmp /tmp/live-spoot.html spoot.html
 
       # Byte-matching the commit is not the same as working. A relative asset
       # path can 403 on one of the two URLs a page is served at while every
